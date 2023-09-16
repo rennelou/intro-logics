@@ -7,35 +7,57 @@ data Soundness (A : Set) : Set where
 data Falsity (A : Set) : Set where
     falses : Falsity A
 
-data _And_ (A B : Set) : Set where
-    _,_ :  Soundness A ->  Soundness B -> A And B
-infixr 4 _,_
-
-andElimination₁ : {A B : Set} → A And B -> Soundness A
-andElimination₁ (x , y) = x
-
-andElimination₂ : {A B : Set} → A And B -> Soundness B
-andElimination₂ (x , y) = y
-
-data _Or_ (A B : Set) : Set where
-    orIntroduction₁ : Soundness A → A Or B
-    orIntroduction₂ : Soundness B → A Or B
-
-orElimination : {A B C : Set} → (Soundness A → Soundness C) → (Soundness B → Soundness C) → A Or B → Soundness C
-orElimination f g (orIntroduction₁ x) = f x
-orElimination f g (orIntroduction₂ x) = g x
-
 negationElimination : {A : Set} → Falsity (Falsity A) → Soundness A
 negationElimination _ = sounds 
 
-negationIntriduction : {A B : Set} → (A → Falsity B) → (A → Soundness B) → Falsity A
-negationIntriduction _ _ = falses
+negationIntroduction : {A B : Set} → (A → Soundness B) → (A → Falsity B) → Falsity A
+negationIntroduction _ _ = falses
 
-exercicio1 : {P Q R : Set} → (Soundness P → (Soundness Q → Soundness R)) → (Soundness P → Soundness Q) → (Soundness P → Soundness R)
+
+data _And_ (A B : Set) : Set where
+    _&_ :  A -> B -> A And B
+infixr 4 _&_
+
+andElimination₁ : {A B : Set} → A And B -> A
+andElimination₁ (x & y) = x
+
+andElimination₂ : {A B : Set} → A And B -> B
+andElimination₂ (x & y) = y
+
+data _Or_ (A B : Set) : Set where
+    orIntroduction₁ : A → A Or B
+    orIntroduction₂ : B → A Or B
+
+orElimination : {A B C : Set} → (A → C) → (B → C) → A Or B → C
+orElimination f g (orIntroduction₁ x) = f x
+orElimination f g (orIntroduction₂ x) = g x
+
+
+
+data P : Set where
+
+data Q : Set where
+
+data R : Set where
+
+
+exercicio1 : (Soundness P → (Soundness Q → Soundness R)) → (Soundness P → Soundness Q) → (Soundness P → Soundness R)
 exercicio1 f g = λ p → (f p) (g p)
 
-obvio : {P Q R : Set} → Soundness P And Soundness Q → Soundness Q Or Soundness R
-obvio x = orIntroduction₁ (andElimination₂ x)
+obvio : Soundness P And Soundness Q → Soundness Q Or Soundness R
+obvio p = orIntroduction₁ (andElimination₂ p)
 
-excludedMiddle : (P : Set) → Soundness P Or Falsity P
-excludedMiddle p = {!   !}
+id : {X : Set} → X → X
+id x = x
+
+step11 : {X : Set} → Soundness X → Soundness (X Or (Falsity X))
+step11 x = {!   !}
+
+step1 : {X : Set} → Falsity (X Or Falsity (X)) → Falsity X
+step1 ~pOr~p = negationIntroduction ({!   !}) (λ p → ~pOr~p)
+
+
+
+
+excludedMiddle : {X : Set} → Soundness X Or Falsity X
+excludedMiddle = {!   !} 
