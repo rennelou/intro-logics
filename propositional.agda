@@ -40,5 +40,11 @@ exercicio1 f g = λ p → (f p) (g p)
 obvio : P × Q → Q ⊎ R
 obvio p = left (snd p)
 
+step1 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → (P → ⊥)
+step1 n = negationIntroduction left (λ p → n)
+
+step2 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ((P → ⊥) → ⊥)
+step2 n =  negationIntroduction right (λ notP → n)
+
 excludedMiddle : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ⊥
-excludedMiddle f = f (fst {!   !})
+excludedMiddle = negationIntroduction step1 step2
