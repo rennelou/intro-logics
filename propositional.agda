@@ -27,6 +27,10 @@ cases (right x) f g = g x
 negationIntroduction : {A B : Set} → (A → B) → (A → (B → ⊥)) → (A → ⊥)
 negationIntroduction f g = λ a → (g a) (f a)
 
+data ClassicalTrue (A : Set) : Set where
+    holds               : A → ClassicalTrue A
+    negationElimination : ((A → ⊥) → ⊥) → ClassicalTrue A
+
 data P : Set where
 
 data Q : Set where
@@ -46,5 +50,8 @@ step1 n = negationIntroduction left (λ p → n)
 step2 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ((P → ⊥) → ⊥)
 step2 n =  negationIntroduction right (λ notP → n)
 
-excludedMiddle : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ⊥
-excludedMiddle = negationIntroduction step1 step2
+step3 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ⊥
+step3 = negationIntroduction step1 step2
+
+excludedMiddle : {P : Set} → ClassicalTrue (P ⊎ (P → ⊥))
+excludedMiddle = negationElimination step3
