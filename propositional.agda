@@ -1,57 +1,75 @@
 postulate String : Set
 {-# BUILTIN STRING String #-}
 
-data ⊤ : Set where
-    tt : ⊤
+data Bool : Set where
+    true  : Bool
+    false : Bool
 
-data ⊥ : Set where
+_&&_ : Bool → Bool → Bool
+true && true = true
+_    && _    = false
 
-data _×_ (A B : Set) : Set where
-    _,_ : A -> B -> A × B
-infixr 4 _,_
+_||_ : Bool → Bool → Bool
+false || false = false
+_     || _     = true
 
-fst : {A B : Set} → A × B -> A
-fst (x , y) = x
+data Nat : Set where
+    zero : Nat
+    suc  : Nat → Nat
+{-# BUILTIN NATURAL Nat #-}
 
-snd : {A B : Set} → A × B -> B
-snd (x , y) = y
+_+_ : Nat → Nat → Nat
+zero    + y = y
+(suc x) + y = suc (x + y)
 
-data _⊎_ (A B : Set) : Set where
-    left : A → A ⊎ B
-    right : B → A ⊎ B
+data Vec (A : Set) : Nat → Set where
+    [] : Vec A 0
+    _::_ : {n : Nat} → A → Vec A n → Vec A (suc n)
+infixr 5 _::_
 
-cases : {A B C : Set} → A ⊎ B → (A → C) → (B → C) → C
-cases (left x) f g = f x
-cases (right x) f g = g x
+data Maybe (A : Set) : Set where
+    nothing : Maybe A
+    just    : A -> Maybe A
 
-negationIntroduction : {A B : Set} → (A → B) → (A → (B → ⊥)) → (A → ⊥)
-negationIntroduction f g = λ a → (g a) (f a)
+data Proposition : String → Set where
+    proposition : (s : String) → Proposition s
 
-data ClassicalTrue (A : Set) : Set where
-    holds               : A → ClassicalTrue A
-    negationElimination : ((A → ⊥) → ⊥) → ClassicalTrue A
+data Compose : Set where
+    simple : {s : String} → (p : Proposition s) → Compose
+    not : Compose → Compose
+    andIntroduction : Compose → Compose → Compose
+    orIntroduction₁ : Compose → Compose
+    orIntroduction₂ : Compose → Compose
+    implication : Compose → Compose → Compose
 
-data P : Set where
+if_then_else_ : {A : Set} → Bool → A → A → A
+if true then x else y = x
+if false then x else y = y
 
-data Q : Set where
+composeEquals : Compose → Compose → Bool
+composeEquals p₁ p₂ = {!   !}
 
-data R : Set where
+implicationElimination : (p : Compose) → Compose → Maybe Compose
+implicationElimination a (implication b c) = if composeEquals a b then just c else nothing
+implicationElimination _ _ = nothing
 
+andElimination₁ : Compose → Maybe Compose
+andElimination₁ (andIntroduction x y) = just x
+andElimination₁ _ = nothing
 
-exercicio1 : (P → (Q → R)) → (P → Q) → (P → R)
-exercicio1 f g = λ p → (f p) (g p)
+andElimination₂ : Compose → Maybe Compose
+andElimination₂ (andIntroduction x y) = just y
+andElimination₂ _ = nothing
 
-obvio : P × Q → Q ⊎ R
-obvio p = left (snd p)
+orElimination : Compose → Compose → Compose → Maybe Compose
+orElimination (orIntroduction₁ p) f g = implicationElimination p f
+orElimination (orIntroduction₂ p) f g = implicationElimination p g
+orElimination _ _ _ = nothing
 
-step1 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → (P → ⊥)
-step1 n = negationIntroduction left (λ p → n)
+negationIntroduction : Compose → Compose → Maybe Compose
+negationIntroduction (implication f f₁) (implication g (not g₁)) = if (composeEquals f g) && (composeEquals f₁ g₁) then just (not f) else nothing
+negationIntroduction _ _ = nothing
 
-step2 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ((P → ⊥) → ⊥)
-step2 n =  negationIntroduction right (λ notP → n)
-
-step3 : {P : Set} → (P ⊎ (P → ⊥) → ⊥) → ⊥
-step3 = negationIntroduction step1 step2
-
-excludedMiddle : {P : Set} → ClassicalTrue (P ⊎ (P → ⊥))
-excludedMiddle = negationElimination step3
+negationElimination : Compose → Maybe Compose
+negationElimination (not (not p)) = just p
+negationElimination _ = nothing
