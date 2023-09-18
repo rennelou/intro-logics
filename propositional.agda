@@ -234,7 +234,19 @@ q = eSimple (proposition "q")
 r : Exp
 r = eSimple (proposition "r")
 
-inital : Vec Exp 2
-inital = eImplication( implication p (eImplication (implication q r))) :: eImplication (implication p q) :: []
+inital : Vec Exp 3
+inital = p :: eImplication( implication p (eImplication (implication q r))) :: eImplication (implication p q) :: []
+
+step1 : Maybe (Vec Exp 4)
+step1 = exec inital (ie {3} zero (suc zero))
+
+assetStep1 : step1 ≡ just ( (eImplication (implication q r)) :: inital )
+assetStep1 = refl
+
+step1' : Maybe (Vec Exp 4)
+step1' = exec inital (ie {3} zero (suc (suc zero)))
+
+assetStep1' : step1' ≡ just (q :: inital)
+assetStep1' = refl
 
 -- agora é colocar assumption
