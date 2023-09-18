@@ -210,18 +210,31 @@ data Operation : Nat → Set where
     ni : {n : Nat} → Fin n →  Fin n → Operation n
     ne : {n : Nat} → Fin n → Operation n
 
-maybeAppend : {n : Nat} {A : Set} → Maybe A → Vec A n → (Vec A n) ⊎ (Vec A (suc n))
-maybeAppend nothing vec = inj₁ vec
-maybeAppend (just x) vec = inj₂ (x :: vec) 
+maybeAppend : {n : Nat} {A : Set} → Maybe A → Vec A n → Maybe (Vec A (suc n))
+maybeAppend nothing vec = nothing
+maybeAppend (just x) vec = just (x :: vec) 
 
-exec : {n : Nat} → Vec Exp n → Operation n → (Vec Exp n) ⊎ (Vec Exp (suc n))
+exec : {n : Nat} → Vec Exp n → Operation n → Maybe (Vec Exp (suc n))
 exec vec (ie i i₁) = maybeAppend (implicationElimination' (lookupVec vec i) (lookupVec vec i₁)) vec
-exec vec (aiOp i i₁) = inj₂ ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) :: vec )
+exec vec (aiOp i i₁) = just ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) :: vec )
 exec vec (aeOp₁ i) = maybeAppend (andElimination₁' (lookupVec vec i)) vec
 exec vec (aeOp₂ i) = maybeAppend (andElimination₂' (lookupVec vec i)) vec
-exec vec (oiOp₁ i e) = inj₂ ( (orIntroduction (lookupVec vec i) with₁ e ) :: vec )
-exec vec (oiOp₂ i e) = inj₂ ( (orIntroduction (lookupVec vec i) with₂ e ) :: vec )
+exec vec (oiOp₁ i e) = just ( (orIntroduction (lookupVec vec i) with₁ e ) :: vec )
+exec vec (oiOp₂ i e) = just ( (orIntroduction (lookupVec vec i) with₂ e ) :: vec )
 exec vec (oeOp i i₁ i₂) = maybeAppend (orElimination' (lookupVec vec i) (lookupVec vec i₁) (lookupVec vec i₂) ) vec
 exec vec (ni i i₁) = maybeAppend (negationIntroduction' (lookupVec vec i) (lookupVec vec i₁)) vec 
 exec vec (ne i) = maybeAppend (negationElimination' (lookupVec vec i)) vec
 
+p : Exp
+p = eSimple (proposition "p")
+
+q : Exp
+q = eSimple (proposition "q")
+
+r : Exp
+r = eSimple (proposition "r")
+
+inital : Vec Exp 2
+inital = eImplication( implication p (eImplication (implication q r))) :: eImplication (implication p q) :: []
+
+-- agora é colocar assumption
