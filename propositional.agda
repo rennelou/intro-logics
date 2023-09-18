@@ -21,6 +21,14 @@ data Nat : Set where
 postulate String : Set
 {-# BUILTIN STRING String #-}
 
+data Maybe (A : Set) : Set where
+    nothing : Maybe A
+    just    : A -> Maybe A
+
+_+_ : Nat → Nat → Nat
+zero    + y = y
+(suc x) + y = suc (x + y)
+
 primitive primStringEquality : String → String → Bool
 
 _&&_ : Bool → Bool → Bool
@@ -45,32 +53,8 @@ primTrustMe {x = x} {y} = primEraseEquality unsafePrimTrustMe
   
 ------------
 
-data Maybe (A : Set) : Set where
-    nothing : Maybe A
-    just    : A -> Maybe A
-
-data _×_ (A B : Set) : Set where
-    _,_ : A -> B -> A × B
-infixr 4 _,_
-
-proj₁ : {A B : Set} → A × B -> A
-proj₁ (x , y) = x
-
-proj₂ : {A B : Set} → A × B -> B
-proj₂ (x , y) = y
-
-data _⊎_ (A B : Set) : Set where
-    inj₁ : A → A ⊎ B
-    inj₂ : B → A ⊎ B
-
-cases : {A B C : Set} → A ⊎ B → (A → C) → (B → C) → C
-cases (inj₁ x) f g = f x
-cases (inj₂ x) f g = g x
-
-data Vec (A : Set) : Nat → Set where
-    [] : Vec A 0
-    _::_ : {n : Nat} → A → Vec A n → Vec A (suc n)
-infixr 5 _::_
+data Not {A : Set} : A → Set where
+    not : (a : A) → Not a
 
 data _And_ {A B : Set} : A → B → Set where
     _&_ : (a : A) → (b : B) → a And b
@@ -79,18 +63,47 @@ data _Or_ {A B : Set} : A → B → Set where
     or₁ : {b : B} → (a : A) → a Or b
     or₂ : {a : A} → (b : B) → a Or b
 
-data Implication {A B : Set} : A → B → Set where
-    implication : (conditional : A) → (conclusion : B) → Implication conditional conclusion
+data If_Then_ {A B : Set} : A → B → Set where
+    implication : (conditional : A) → (conclusion : B) → If conditional Then conclusion
+
+implicationElimination : {A B : Set} {e₁ : B} → (e : A) → If e Then e₁ → B
+implicationElimination _ (implication _ e₁) = e₁
+
+andIntroduction : {A B : Set} → (a : A) → (b : B) → a And b
+andIntroduction = _&_
+
+andElimination₁ : {A B : Set} {a : A} {b : B} → a And b → A
+andElimination₁ (a & _) = a
+
+andElimination₂ : {A B : Set} {a : A} {b : B} → a And b → B
+andElimination₂ (_ & b) = b
+
+orIntroduction₁ : {A B : Set} {b : B} → (a : A) → a Or b
+orIntroduction₁ = or₁
+
+orIntroduction₂ : {A B : Set} {a : A} → (b : B) → a Or b
+orIntroduction₂ = or₂
+
+orElimination : {A B C : Set} {a : A} {b : B} {c : C} → a Or b → If a Then c → If b Then c → C
+orElimination {_} {_} {_} {_} {_} {c} _ _ _ = c
+
+negationIntroduction : {A B : Set} {a : A} {b : B} → If a Then b → If a Then (not b) → Not a
+negationIntroduction {_} {_} {a} {_} f g = not a
+
+negationElimination : {A : Set} {a : A} → Not (not a) → A
+negationElimination {_} {a} _ = a
+
+------------------------------------------
 
 data Proposition : String → Set where
     proposition : (s : String) → Proposition s
 
 data Exp : Set where
     eSimple : {s : String} → (p : Proposition s) → Exp
-    eNot : Exp → Exp
+    eNot : {e : Exp} → Not e → Exp
     eAnd : {e e₁ : Exp} → e And e₁ → Exp
     eOr  : {e e₁ : Exp} → e Or e₁ → Exp
-    eImplication : {cond conc : Exp} → Implication cond conc → Exp
+    eImplication : {e e₁ : Exp} → If e Then e₁ → Exp
 
 eqString : (a b : String) → Maybe (a ≡ b)
 eqString a b = if primStringEquality a b
@@ -105,7 +118,7 @@ propositionalEquals (proposition s₁) (proposition s₂) = primStringEquality s
 
 expEquals : Exp → Exp → Bool
 expEquals (eSimple p) (eSimple p₁) = propositionalEquals p p₁
-expEquals (eNot a) (eNot b) = expEquals a b
+expEquals (eNot (not a)) (eNot (not b)) = expEquals a b
 expEquals (eAnd (x & x₁)) (eAnd (x₂ & x₃)) = expEquals x x₂ && expEquals x₁ x₃
 expEquals (eOr (or₁ x)) (eOr (or₁ x₁)) = expEquals x x₁
 expEquals (eOr (or₂ x)) (eOr (or₂ x₁)) = expEquals x x₁
@@ -123,23 +136,92 @@ testPropositionalEquals = refl
 --testEqExp : {a : Exp} → (eqExp a a) ≡ just (a ≡ a)
 --testEqExp = refl
 
-implicationElimination : {conc : Exp} → (cond : Exp) → Implication cond conc → Exp
-implicationElimination _ (implication x y) = y
+andIntroduction' : Exp → Exp → Exp
+andIntroduction' a b = eAnd (andIntroduction a b)
 
-andIntroduction : (a : Exp) → (b : Exp) → a And b
-andIntroduction = _&_
+andElimination₁' : Exp → Maybe Exp
+andElimination₁' (eAnd e) = just (andElimination₁ e)
+andElimination₁' _ = nothing
 
-andElimination₁ : {a b : Exp} → a And b → Exp
-andElimination₁ (a & b) = a
+andElimination₂' : Exp → Maybe Exp
+andElimination₂' (eAnd e) = just (andElimination₂ e)
+andElimination₂' _ = nothing
 
-andElimination₂ : {a b : Exp} → a And b → Exp
-andElimination₂ (a & b) = b
+orIntroduction_with₁ : Exp → Exp → Exp
+orIntroduction_with₁ e implict = eOr {e} {implict} (orIntroduction₁ e)
 
-orIntroduction₁ : {b : Exp} → (a : Exp) → a Or b
-orIntroduction₁ = or₁
+orIntroduction_with₂ : Exp → Exp → Exp
+orIntroduction_with₂ e implict = eOr {implict} {e} (orIntroduction₂ e)
 
-orIntroduction₂ : {a : Exp} → (b : Exp) → a Or b
-orIntroduction₂ = or₂
+negationElimination' : Exp → Maybe Exp
+negationElimination' (eNot (not (eNot (not x)))) = just (negationElimination (not (not x)))
+negationElimination' _ = nothing
 
-orElimination : {a b c : Exp} → a Or b → Implication a c → Implication b c → Exp
-orElimination {_} {_} {c} _ _ _ = c 
+----- ver se melhora usando identity types e substituição no lugar de recriar os objetos
+
+implicationElimination' : Exp → Exp → Maybe Exp
+implicationElimination' e (eImplication (implication cond conc)) =
+    if expEquals e cond 
+    then just (implicationElimination cond (implication cond conc))
+    else nothing
+implicationElimination' _ _ = nothing
+
+orElimination' : Exp → Exp → Exp → Maybe Exp
+orElimination' (eOr {a} {b} o) (eImplication {a₁} {r} _) (eImplication {b₁} {r₁} _) = 
+    if (expEquals a a₁ && expEquals b b₁) && expEquals r r₁ 
+    then just (orElimination o (implication a r) (implication b r))
+    else nothing
+orElimination' _ _ _ = nothing
+
+negationIntroduction' : Exp → Exp → Maybe Exp
+negationIntroduction' (eImplication {a} {b} x) (eImplication {a₁} {b₁} x₁) =
+    if expEquals a a₁ && expEquals (eNot (not b)) b₁
+    then just (eNot (negationIntroduction (implication a b) (implication a (not b))))
+    else nothing
+negationIntroduction' _ _ = nothing
+
+-----------------
+
+data _⊎_ (A B : Set) : Set where
+    inj₁ : A → A ⊎ B
+    inj₂ : B → A ⊎ B
+
+data Vec (A : Set) : Nat → Set where
+    [] : Vec A 0
+    _::_ : {n : Nat} → A → Vec A n → Vec A (suc n)
+infixr 5 _::_
+
+data Fin : Nat → Set where
+  zero : {n : Nat} → Fin (suc n)
+  suc  : {n : Nat} → Fin n → Fin (suc n)
+
+lookupVec : {A : Set} {n : Nat} → Vec A n → Fin n → A
+lookupVec (x :: xs) zero = x
+lookupVec (x :: xs) (suc i) = lookupVec xs i
+
+data Operation : Nat → Set where
+    ie : {n : Nat} → Fin n → Fin n → Operation n
+    aiOp : {n : Nat} → Fin n → Fin n → Operation n
+    aeOp₁ : {n : Nat} → Fin n → Operation n
+    aeOp₂ : {n : Nat} → Fin n → Operation n
+    oiOp₁ : {n : Nat} → Fin n → (e : Exp) → Operation n
+    oiOp₂ : {n : Nat} → Fin n → (e : Exp) → Operation n
+    oeOp : {n : Nat} → Fin n → Fin n → Fin n → Operation n
+    ni : {n : Nat} → Fin n →  Fin n → Operation n
+    ne : {n : Nat} → Fin n → Operation n
+
+maybeAppend : {n : Nat} {A : Set} → Maybe A → Vec A n → (Vec A n) ⊎ (Vec A (suc n))
+maybeAppend nothing vec = inj₁ vec
+maybeAppend (just x) vec = inj₂ (x :: vec) 
+
+exec : {n : Nat} → Vec Exp n → Operation n → (Vec Exp n) ⊎ (Vec Exp (suc n))
+exec vec (ie i i₁) = maybeAppend (implicationElimination' (lookupVec vec i) (lookupVec vec i₁)) vec
+exec vec (aiOp i i₁) = inj₂ ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) :: vec )
+exec vec (aeOp₁ i) = maybeAppend (andElimination₁' (lookupVec vec i)) vec
+exec vec (aeOp₂ i) = maybeAppend (andElimination₂' (lookupVec vec i)) vec
+exec vec (oiOp₁ i e) = inj₂ ( (orIntroduction (lookupVec vec i) with₁ e ) :: vec )
+exec vec (oiOp₂ i e) = inj₂ ( (orIntroduction (lookupVec vec i) with₂ e ) :: vec )
+exec vec (oeOp i i₁ i₂) = maybeAppend (orElimination' (lookupVec vec i) (lookupVec vec i₁) (lookupVec vec i₂) ) vec
+exec vec (ni i i₁) = maybeAppend (negationIntroduction' (lookupVec vec i) (lookupVec vec i₁)) vec 
+exec vec (ne i) = maybeAppend (negationElimination' (lookupVec vec i)) vec
+
