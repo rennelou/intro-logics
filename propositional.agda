@@ -189,7 +189,7 @@ inital = p ∷ eImplication( implication p (eImplication (implication q r))) ∷
 
 exercitio1 :
     ( do
-        passo1 ← exec inital (ie (fromℕ< {0} _) (fromℕ< {2} _))
+        passo1 ← exec inital (ie (fromℕ< {0} (0 < 3)) (fromℕ< {2} _))
         passo2 ← exec passo1 (ie (fromℕ< {1} _) (fromℕ< {2} _))
         passo3 ← exec passo2 (ie (fromℕ< {1} _) (fromℕ< {0} _))
         just (lookup passo3 (fromℕ< {0} _) ) 
@@ -198,3 +198,4 @@ exercitio1 = refl
 
 
 -- agora é colocar assumption
+ 
