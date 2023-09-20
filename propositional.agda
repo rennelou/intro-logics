@@ -1,35 +1,14 @@
+open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
+open import Data.Maybe using (Maybe; just; nothing; _>>=_)
+open import Agda.Builtin.Bool using (Bool; true; false)
+open import Agda.Builtin.String using (String; primStringEquality)
+open import Data.Nat using (ℕ; zero; suc; _+_; _<_)
+open import Data.Fin using (Fin; zero; suc; fromℕ<″; fromℕ; fromℕ<)
+open import Data.Vec using (Vec; []; _∷_; lookup)
 
-infix 4 _≡_
-data _≡_ {a} {A : Set a} (x : A) : A → Set a where
-  refl : x ≡ x
-{-# BUILTIN EQUALITY _≡_  #-}
-
-cong : ∀ {A B : Set} (f : A → B) {x y : A} → x ≡ y → f x ≡ f y
-cong f refl  =  refl
-
-data Bool : Set where
-    false true : Bool
-{-# BUILTIN BOOL Bool #-}
-{-# BUILTIN TRUE true #-}
-{-# BUILTIN FALSE false #-}
-
-data Nat : Set where
-    zero : Nat
-    suc : Nat → Nat
-{-# BUILTIN NATURAL Nat #-}
-
-postulate String : Set
-{-# BUILTIN STRING String #-}
-
-data Maybe (A : Set) : Set where
-    nothing : Maybe A
-    just    : A -> Maybe A
-
-_+_ : Nat → Nat → Nat
-zero    + y = y
-(suc x) + y = suc (x + y)
-
-primitive primStringEquality : String → String → Bool
+open import Relation.Nullary
+open import Relation.Nullary.Decidable
+open import Relation.Binary.Core
 
 _&&_ : Bool → Bool → Bool
 true && true = true
@@ -44,12 +23,6 @@ assertIfThenElse₁ _ _ = refl
 
 assertIfThenElse₂ : {A : Set} → (a b : A) → if false then a else b ≡ b
 assertIfThenElse₂ _ _ = refl
-
-primitive primEraseEquality : ∀ {a} {A : Set a} {x y : A} → x ≡ y → x ≡ y
-
-primTrustMe : ∀ {a} {A : Set a} {x y : A} → x ≡ y
-primTrustMe {x = x} {y} = primEraseEquality unsafePrimTrustMe
-                            where postulate unsafePrimTrustMe : x ≡ y
   
 ------------
 
@@ -105,14 +78,6 @@ data Exp : Set where
     eOr  : {e e₁ : Exp} → e Or e₁ → Exp
     eImplication : {e e₁ : Exp} → If e Then e₁ → Exp
 
-eqString : (a b : String) → Maybe (a ≡ b)
-eqString a b = if primStringEquality a b
-               then just primTrustMe
-               else nothing
-
---testEqString : {a : String} → (eqString a a) ≡ (just (a ≡ a))
---testEqString = refl
-
 propositionalEquals : {s₁ s₂ : String} → (a : Proposition s₁) → (b : Proposition s₂) → Bool
 propositionalEquals (proposition s₁) (proposition s₂) = primStringEquality s₁ s₂
 
@@ -125,16 +90,10 @@ expEquals (eOr (or₂ x)) (eOr (or₂ x₁)) = expEquals x x₁
 expEquals (eImplication (implication e x)) (eImplication (implication e₁ x₁)) = expEquals e e₁ && expEquals x x₁
 expEquals _ _ = false
 
-eqExp : (a b : Exp) → Maybe (a ≡ b)
-eqExp a b = if expEquals a b
-               then just primTrustMe
-               else nothing
 
 testPropositionalEquals : propositionalEquals (proposition "test") (proposition "test") ≡ true
 testPropositionalEquals = refl
 
---testEqExp : {a : Exp} → (eqExp a a) ≡ just (a ≡ a)
---testEqExp = refl
 
 andIntroduction' : Exp → Exp → Exp
 andIntroduction' a b = eAnd (andIntroduction a b)
@@ -186,41 +145,32 @@ data _⊎_ (A B : Set) : Set where
     inj₁ : A → A ⊎ B
     inj₂ : B → A ⊎ B
 
-data Vec (A : Set) : Nat → Set where
-    [] : Vec A 0
-    _::_ : {n : Nat} → A → Vec A n → Vec A (suc n)
-infixr 5 _::_
+lookupVec : {A : Set} {n : ℕ} → Vec A n → Fin n → A
+lookupVec (x ∷ xs) zero = x
+lookupVec (x ∷ xs) (suc i) = lookupVec xs i
 
-data Fin : Nat → Set where
-  zero : {n : Nat} → Fin (suc n)
-  suc  : {n : Nat} → Fin n → Fin (suc n)
+data Operation : ℕ → Set where
+    ie : {n : ℕ} → Fin n → Fin n → Operation n
+    aiOp : {n : ℕ} → Fin n → Fin n → Operation n
+    aeOp₁ : {n : ℕ} → Fin n → Operation n
+    aeOp₂ : {n : ℕ} → Fin n → Operation n
+    oiOp₁ : {n : ℕ} → Fin n → (e : Exp) → Operation n
+    oiOp₂ : {n : ℕ} → Fin n → (e : Exp) → Operation n
+    oeOp : {n : ℕ} → Fin n → Fin n → Fin n → Operation n
+    ni : {n : ℕ} → Fin n →  Fin n → Operation n
+    ne : {n : ℕ} → Fin n → Operation n
 
-lookupVec : {A : Set} {n : Nat} → Vec A n → Fin n → A
-lookupVec (x :: xs) zero = x
-lookupVec (x :: xs) (suc i) = lookupVec xs i
-
-data Operation : Nat → Set where
-    ie : {n : Nat} → Fin n → Fin n → Operation n
-    aiOp : {n : Nat} → Fin n → Fin n → Operation n
-    aeOp₁ : {n : Nat} → Fin n → Operation n
-    aeOp₂ : {n : Nat} → Fin n → Operation n
-    oiOp₁ : {n : Nat} → Fin n → (e : Exp) → Operation n
-    oiOp₂ : {n : Nat} → Fin n → (e : Exp) → Operation n
-    oeOp : {n : Nat} → Fin n → Fin n → Fin n → Operation n
-    ni : {n : Nat} → Fin n →  Fin n → Operation n
-    ne : {n : Nat} → Fin n → Operation n
-
-maybeAppend : {n : Nat} {A : Set} → Maybe A → Vec A n → Maybe (Vec A (suc n))
+maybeAppend : {n : ℕ} {A : Set} → Maybe A → Vec A n → Maybe (Vec A (suc n))
 maybeAppend nothing vec = nothing
-maybeAppend (just x) vec = just (x :: vec) 
+maybeAppend (just x) vec = just (x ∷ vec) 
 
-exec : {n : Nat} → Vec Exp n → Operation n → Maybe (Vec Exp (suc n))
+exec : {n : ℕ} → Vec Exp n → Operation n → Maybe (Vec Exp (suc n))
 exec vec (ie i i₁) = maybeAppend (implicationElimination' (lookupVec vec i) (lookupVec vec i₁)) vec
-exec vec (aiOp i i₁) = just ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) :: vec )
+exec vec (aiOp i i₁) = just ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) ∷ vec )
 exec vec (aeOp₁ i) = maybeAppend (andElimination₁' (lookupVec vec i)) vec
 exec vec (aeOp₂ i) = maybeAppend (andElimination₂' (lookupVec vec i)) vec
-exec vec (oiOp₁ i e) = just ( (orIntroduction (lookupVec vec i) with₁ e ) :: vec )
-exec vec (oiOp₂ i e) = just ( (orIntroduction (lookupVec vec i) with₂ e ) :: vec )
+exec vec (oiOp₁ i e) = just ( (orIntroduction (lookupVec vec i) with₁ e ) ∷ vec )
+exec vec (oiOp₂ i e) = just ( (orIntroduction (lookupVec vec i) with₂ e ) ∷ vec )
 exec vec (oeOp i i₁ i₂) = maybeAppend (orElimination' (lookupVec vec i) (lookupVec vec i₁) (lookupVec vec i₂) ) vec
 exec vec (ni i i₁) = maybeAppend (negationIntroduction' (lookupVec vec i) (lookupVec vec i₁)) vec 
 exec vec (ne i) = maybeAppend (negationElimination' (lookupVec vec i)) vec
@@ -235,18 +185,16 @@ r : Exp
 r = eSimple (proposition "r")
 
 inital : Vec Exp 3
-inital = p :: eImplication( implication p (eImplication (implication q r))) :: eImplication (implication p q) :: []
+inital = p ∷ eImplication( implication p (eImplication (implication q r))) ∷ eImplication (implication p q) ∷ []
 
-step1 : Maybe (Vec Exp 4)
-step1 = exec inital (ie {3} zero (suc zero))
+exercitio1 :
+    ( do
+        passo1 ← exec inital (ie (fromℕ< {0} _) (fromℕ< {2} _))
+        passo2 ← exec passo1 (ie (fromℕ< {1} _) (fromℕ< {2} _))
+        passo3 ← exec passo2 (ie (fromℕ< {1} _) (fromℕ< {0} _))
+        just (lookup passo3 (fromℕ< {0} _) ) 
+    ) ≡ just r
+exercitio1 = refl
 
-assetStep1 : step1 ≡ just ( (eImplication (implication q r)) :: inital )
-assetStep1 = refl
-
-step1' : Maybe (Vec Exp 4)
-step1' = exec inital (ie {3} zero (suc (suc zero)))
-
-assetStep1' : step1' ≡ just (q :: inital)
-assetStep1' = refl
 
 -- agora é colocar assumption
