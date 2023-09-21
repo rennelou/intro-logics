@@ -5,6 +5,8 @@ open import Agda.Builtin.String using (String; primStringEquality)
 open import Data.Nat using (ℕ; zero; suc; _+_; _<_)
 open import Data.Fin using (Fin; zero; suc; fromℕ<″; fromℕ; fromℕ<)
 open import Data.Vec using (Vec; []; _∷_; lookup)
+open import Data.List using (List; []; _∷_)
+open import Data.Product using (_×_; _,_)
 
 open import Relation.Nullary
 open import Relation.Nullary.Decidable
@@ -150,6 +152,7 @@ lookupVec (x ∷ xs) zero = x
 lookupVec (x ∷ xs) (suc i) = lookupVec xs i
 
 data Operation : ℕ → Set where
+    ii : {n : ℕ} → Exp → Operation n
     ie : {n : ℕ} → Fin n → Fin n → Operation n
     aiOp : {n : ℕ} → Fin n → Fin n → Operation n
     aeOp₁ : {n : ℕ} → Fin n → Operation n
@@ -174,6 +177,7 @@ exec vec (oiOp₂ i e) = just ( (orIntroduction (lookupVec vec i) with₂ e ) �
 exec vec (oeOp i i₁ i₂) = maybeAppend (orElimination' (lookupVec vec i) (lookupVec vec i₁) (lookupVec vec i₂) ) vec
 exec vec (ni i i₁) = maybeAppend (negationIntroduction' (lookupVec vec i) (lookupVec vec i₁)) vec 
 exec vec (ne i) = maybeAppend (negationElimination' (lookupVec vec i)) vec
+exec _ (ii _) = nothing
 
 p : Exp
 p = eSimple (proposition "p")
@@ -189,13 +193,24 @@ inital = p ∷ eImplication( implication p (eImplication (implication q r))) ∷
 
 exercitio1 :
     ( do
-        passo1 ← exec inital (ie (fromℕ< {0} (0 < 3)) (fromℕ< {2} _))
+        passo1 ← exec inital (ie (fromℕ< {0} _) (fromℕ< {2} _))
         passo2 ← exec passo1 (ie (fromℕ< {1} _) (fromℕ< {2} _))
         passo3 ← exec passo2 (ie (fromℕ< {1} _) (fromℕ< {0} _))
         just (lookup passo3 (fromℕ< {0} _) ) 
     ) ≡ just r
 exercitio1 = refl
 
+data Context : Set where
+    empty : Context
+    node  : Exp → Context → Context → Context
+    
+addValidExp : Exp → Context → Context
+addValidExp e empty = node e empty empty
+addValidExp e (node x c c₁) = node x (addValidExp e c) c₁
+
+contextElem : Exp → Context → Bool
+contextElem e empty = false
+contextElem e (node x c c₁) = if (expEquals e x) then true else (contextElem e c)
 
 -- agora é colocar assumption
  
