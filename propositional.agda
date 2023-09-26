@@ -108,11 +108,12 @@ andElimination₂' : Exp → Maybe Exp
 andElimination₂' (eAnd e) = just (andElimination₂ e)
 andElimination₂' _ = nothing
 
+-- esta ocorrendo algo zuado, como eu tenho sempre as expressões a ideia de or esta checando o left ou right
+-- no nivel de qual expressão é valida no context. apos isso eu so preciso do orIntroduction_with₁. Ta zuado a tipagem desse
+-- codigo
+
 orIntroduction_with₁ : Exp → Exp → Exp
 orIntroduction_with₁ e implict = eOr {e} {implict} (orIntroduction₁ e)
-
-orIntroduction_with₂ : Exp → Exp → Exp
-orIntroduction_with₂ e implict = eOr {implict} {e} (orIntroduction₂ e)
 
 negationElimination' : Exp → Maybe Exp
 negationElimination' (eNot (notCreation (eNot (notCreation x)))) = just (negationElimination (notCreation (notCreation x)))
@@ -195,14 +196,14 @@ andEliminationRule₂ e c =
 
 orIntroductionRule₁ : Exp → Exp → Context → Maybe Context
 orIntroductionRule₁ e e₁ c =
-    if (contextElem e c) && (contextElem e₁ c)
+    if (contextElem e c)
     then just (commitValid (orIntroduction e with₁ e₁) c)
     else nothing
 
 orIntroductionRule₂ : Exp → Exp → Context → Maybe Context
 orIntroductionRule₂ e e₁ c =
-    if (contextElem e c) && (contextElem e₁ c)
-    then just (commitValid (orIntroduction e with₂ e₁) c)
+    if (contextElem e₁ c)
+    then just (commitValid (orIntroduction e with₁ e₁) c)
     else nothing
 
 orEliminationRule : Exp → Exp → Exp → Context → Maybe Context
@@ -312,3 +313,30 @@ implicationReversalExercise :
     ) ≡ just true
 implicationReversalExercise = refl
 
+functionTypeToBooleanPremises : Context
+functionTypeToBooleanPremises = (p implies q) append empty
+
+functionTypeToBooleanExercise :
+    ( do
+        let step1 = closure (not ((not p) or q)) functionTypeToBooleanPremises
+        let step2 = closure p step1
+        step3 ← implicationEliminationRule p (p implies q) step2
+        step4 ← orIntroductionRule₂ (not p) q step3
+        step5 ← implicationIntroductionRule ((not p) or q) step4
+        let step6 = closure p step5
+        step7 ← implicationIntroductionRule (not ((not p) or q)) step6
+        step8 ← negationIntroductionRule (p implies ((not p) or q)) (p implies (not ((not p) or q))) step7
+        step9 ← implicationIntroductionRule (not p) step8
+        let step10 = closure (not ((not p) or q)) step9
+        let step11 = closure (not p) step10
+        step12 ← orIntroductionRule₁ (not p) q step11
+        step13 ← implicationIntroductionRule ((not p) or q) step12
+        let step14 = closure (not p) step13
+        step15 ← implicationIntroductionRule (not ((not p) or q)) step14
+        step16 ← negationIntroductionRule ((not p) implies ((not p) or q)) ((not p) implies (not ((not p) or q))) step15
+        step17 ← implicationIntroductionRule (not (not p)) step16
+        step18 ← negationIntroductionRule ((not ((not p) or q)) implies (not p)) ((not ((not p) or q)) implies (not (not p))) step17
+        step19 ← negationEliminationRule (not (not ((not p) or q))) step18
+        just (contextElem ((not p) or q) step19)
+    ) ≡ just true
+functionTypeToBooleanExercise = refl
