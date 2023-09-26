@@ -237,6 +237,9 @@ q = eSimple (proposition "q")
 r : Exp
 r = eSimple (proposition "r")
 
+m : Exp
+m = eSimple (proposition "m")
+
 exercicio1Premises : Context
 exercicio1Premises = 
     p 
@@ -256,7 +259,24 @@ exercitio1 :
     ) ≡ just true
 exercitio1 = refl
 
+exercicio2Premises : Context
+exercicio2Premises = 
+    ( eImplication ( implication p q)) 
+      append ( 
+            (eImplication (implication m (orIntroduction p with₁ q))) append empty
+      )
 
+exercicio2 :
+    ( do
+        let step1 = closure q exercicio2Premises
+        step2 ← implicationIntroductionRule q step1
+        let step3 = closure m step2
+        step4 ← implicationEliminationRule m (eImplication (implication m (orIntroduction p with₁ q))) step3
+        step5 ← orEliminationRule (orIntroduction p with₁ q) (eImplication ( implication p q)) ( eImplication ( implication q q)) step4
+        step6 ← implicationIntroductionRule q step5
+        just (contextElem (eImplication (implication m q)) step6)
+    ) ≡ just true
+exercicio2 = refl
 
 -- agora é colocar assumption
  
