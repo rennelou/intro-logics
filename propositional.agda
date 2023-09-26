@@ -225,6 +225,9 @@ negationEliminationRule e c =
 
 -------
 
+_append_ : Exp → Context → Context
+_append_ = commitValid
+
 p : Exp
 p = eSimple (proposition "p")
 
@@ -234,23 +237,26 @@ q = eSimple (proposition "q")
 r : Exp
 r = eSimple (proposition "r")
 
-initial : Context
-initial =
-    commitValid 
-        p
-        ( commitValid
-            (eImplication ( implication p (eImplication (implication q r))))
-            (commitValid (eImplication (implication p q)) empty )
-        )
+exercicio1Premises : Context
+exercicio1Premises = 
+    p 
+    append ( 
+        ( eImplication ( implication p (eImplication (implication q r)))) 
+          append ( 
+                (eImplication (implication p q)) append empty
+          )
+    )
 
 exercitio1 :
     ( do
-        passo1 ← implicationEliminationRule p (eImplication (implication p q)) initial
+        passo1 ← implicationEliminationRule p (eImplication (implication p q)) exercicio1Premises
         passo2 ← implicationEliminationRule p (eImplication (implication p (eImplication (implication q r)))) passo1
         passo3 ← implicationEliminationRule q (eImplication (implication q r)) passo2
         just (contextElem r passo3)
     ) ≡ just true
 exercitio1 = refl
+
+
 
 -- agora é colocar assumption
  
