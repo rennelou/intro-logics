@@ -1,5 +1,5 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; refl; cong)
-open import Data.Maybe using (Maybe; just; nothing; _>>=_)
+open import Data.Maybe using (Maybe; just; nothing; map; _>>=_)
 open import Agda.Builtin.Bool using (Bool; true; false)
 open import Agda.Builtin.String using (String; primStringEquality)
 open import Data.Nat using (ℕ; zero; suc; _+_; _<_)
@@ -143,41 +143,87 @@ negationIntroduction' _ _ = nothing
 
 -----------------
 
-data _⊎_ (A B : Set) : Set where
-    inj₁ : A → A ⊎ B
-    inj₂ : B → A ⊎ B
+data Context : Set where
+    empty : Context
+    closure : Exp → Context → Context
+    commitValid : Exp → Context → Context
 
-lookupVec : {A : Set} {n : ℕ} → Vec A n → Fin n → A
-lookupVec (x ∷ xs) zero = x
-lookupVec (x ∷ xs) (suc i) = lookupVec xs i
+contextElem : Exp → Context → Bool
+contextElem e empty = false
+contextElem e (commitValid x c) = if (expEquals e x) then true else (contextElem e c)
+contextElem e (closure x c) = if (expEquals e x) then true else (contextElem e c)
 
-data Operation : ℕ → Set where
-    ii : {n : ℕ} → Exp → Operation n
-    ie : {n : ℕ} → Fin n → Fin n → Operation n
-    aiOp : {n : ℕ} → Fin n → Fin n → Operation n
-    aeOp₁ : {n : ℕ} → Fin n → Operation n
-    aeOp₂ : {n : ℕ} → Fin n → Operation n
-    oiOp₁ : {n : ℕ} → Fin n → (e : Exp) → Operation n
-    oiOp₂ : {n : ℕ} → Fin n → (e : Exp) → Operation n
-    oeOp : {n : ℕ} → Fin n → Fin n → Fin n → Operation n
-    ni : {n : ℕ} → Fin n →  Fin n → Operation n
-    ne : {n : ℕ} → Fin n → Operation n
+commit : Maybe Exp → Context → Maybe Context
+commit m c = Data.Maybe.map (λ x → commitValid x c) m
 
-maybeAppend : {n : ℕ} {A : Set} → Maybe A → Vec A n → Maybe (Vec A (suc n))
-maybeAppend nothing vec = nothing
-maybeAppend (just x) vec = just (x ∷ vec) 
+implicationIntroduction : Exp → Context → Maybe Context
+implicationIntroduction e empty = nothing
+implicationIntroduction e (closure x c) = just (commitValid (eImplication (implication x e)) c)
+implicationIntroduction e (commitValid x c) = implicationIntroduction e c
 
-exec : {n : ℕ} → Vec Exp n → Operation n → Maybe (Vec Exp (suc n))
-exec vec (ie i i₁) = maybeAppend (implicationElimination' (lookupVec vec i) (lookupVec vec i₁)) vec
-exec vec (aiOp i i₁) = just ( (andIntroduction' (lookupVec vec i) (lookupVec vec i₁)) ∷ vec )
-exec vec (aeOp₁ i) = maybeAppend (andElimination₁' (lookupVec vec i)) vec
-exec vec (aeOp₂ i) = maybeAppend (andElimination₂' (lookupVec vec i)) vec
-exec vec (oiOp₁ i e) = just ( (orIntroduction (lookupVec vec i) with₁ e ) ∷ vec )
-exec vec (oiOp₂ i e) = just ( (orIntroduction (lookupVec vec i) with₂ e ) ∷ vec )
-exec vec (oeOp i i₁ i₂) = maybeAppend (orElimination' (lookupVec vec i) (lookupVec vec i₁) (lookupVec vec i₂) ) vec
-exec vec (ni i i₁) = maybeAppend (negationIntroduction' (lookupVec vec i) (lookupVec vec i₁)) vec 
-exec vec (ne i) = maybeAppend (negationElimination' (lookupVec vec i)) vec
-exec _ (ii _) = nothing
+----
+
+implicationIntroductionRule : Exp → Context → Maybe Context
+implicationIntroductionRule e c =
+    if (contextElem e c)
+    then implicationIntroduction e c
+    else nothing
+
+implicationEliminationRule : Exp → Exp → Context → Maybe Context
+implicationEliminationRule e e₁ c =
+    if (contextElem e c) && (contextElem e₁ c)
+    then commit (implicationElimination' e e₁) c
+    else nothing
+
+andIntroductionRule : Exp → Exp → Context → Maybe Context
+andIntroductionRule a b c =
+    if (contextElem a c) && (contextElem b c)
+    then just (commitValid (eAnd (andIntroduction a b)) c)
+    else nothing
+
+andEliminationRule₁ : Exp → Context → Maybe Context
+andEliminationRule₁ e c = 
+    if (contextElem e c)
+    then commit (andElimination₁' e) c
+    else nothing
+
+andEliminationRule₂ : Exp → Context → Maybe Context
+andEliminationRule₂ e c =
+    if (contextElem e c)
+    then commit (andElimination₂' e) c
+    else nothing
+
+orIntroductionRule₁ : Exp → Exp → Context → Maybe Context
+orIntroductionRule₁ e e₁ c =
+    if (contextElem e c) && (contextElem e₁ c)
+    then just (commitValid (orIntroduction e with₁ e₁) c)
+    else nothing
+
+orIntroductionRule₂ : Exp → Exp → Context → Maybe Context
+orIntroductionRule₂ e e₁ c =
+    if (contextElem e c) && (contextElem e₁ c)
+    then just (commitValid (orIntroduction e with₂ e₁) c)
+    else nothing
+
+orEliminationRule : Exp → Exp → Exp → Context → Maybe Context
+orEliminationRule e e₁ e₂ c =
+    if ((contextElem e c) && (contextElem e₁ c)) && (contextElem e₂ c)
+    then commit (orElimination' e e₁ e₂) c
+    else nothing
+
+negationIntroductionRule : Exp → Exp → Context → Maybe Context
+negationIntroductionRule e e₁ c =
+    if (contextElem e c) && (contextElem e₁ c)
+    then commit (negationIntroduction' e e₁) c
+    else nothing
+
+negationEliminationRule : Exp → Context → Maybe Context
+negationEliminationRule e c =
+    if (contextElem e c)
+    then commit (negationElimination' e) c
+    else nothing
+
+-------
 
 p : Exp
 p = eSimple (proposition "p")
@@ -188,29 +234,23 @@ q = eSimple (proposition "q")
 r : Exp
 r = eSimple (proposition "r")
 
-inital : Vec Exp 3
-inital = p ∷ eImplication( implication p (eImplication (implication q r))) ∷ eImplication (implication p q) ∷ []
+initial : Context
+initial =
+    commitValid 
+        p
+        ( commitValid
+            (eImplication ( implication p (eImplication (implication q r))))
+            (commitValid (eImplication (implication p q)) empty )
+        )
 
 exercitio1 :
     ( do
-        passo1 ← exec inital (ie (fromℕ< {0} _) (fromℕ< {2} _))
-        passo2 ← exec passo1 (ie (fromℕ< {1} _) (fromℕ< {2} _))
-        passo3 ← exec passo2 (ie (fromℕ< {1} _) (fromℕ< {0} _))
-        just (lookup passo3 (fromℕ< {0} _) ) 
-    ) ≡ just r
+        passo1 ← implicationEliminationRule p (eImplication (implication p q)) initial
+        passo2 ← implicationEliminationRule p (eImplication (implication p (eImplication (implication q r)))) passo1
+        passo3 ← implicationEliminationRule q (eImplication (implication q r)) passo2
+        just (contextElem r passo3)
+    ) ≡ just true
 exercitio1 = refl
-
-data Context : Set where
-    empty : Context
-    node  : Exp → Context → Context → Context
-    
-addValidExp : Exp → Context → Context
-addValidExp e empty = node e empty empty
-addValidExp e (node x c c₁) = node x (addValidExp e c) c₁
-
-contextElem : Exp → Context → Bool
-contextElem e empty = false
-contextElem e (node x c c₁) = if (expEquals e x) then true else (contextElem e c)
 
 -- agora é colocar assumption
  
