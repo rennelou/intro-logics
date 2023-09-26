@@ -29,14 +29,14 @@ assertIfThenElse₂ _ _ = refl
 ------------
 
 data Not {A : Set} : A → Set where
-    not : (a : A) → Not a
+    notCreation : (a : A) → Not a
 
 data _And_ {A B : Set} : A → B → Set where
     _&_ : (a : A) → (b : B) → a And b
 
 data _Or_ {A B : Set} : A → B → Set where
-    or₁ : {b : B} → (a : A) → a Or b
-    or₂ : {a : A} → (b : B) → a Or b
+    orCreation₁ : {b : B} → (a : A) → a Or b
+    orCreation₂ : {a : A} → (b : B) → a Or b
 
 data If_Then_ {A B : Set} : A → B → Set where
     implication : (conditional : A) → (conclusion : B) → If conditional Then conclusion
@@ -54,18 +54,18 @@ andElimination₂ : {A B : Set} {a : A} {b : B} → a And b → B
 andElimination₂ (_ & b) = b
 
 orIntroduction₁ : {A B : Set} {b : B} → (a : A) → a Or b
-orIntroduction₁ = or₁
+orIntroduction₁ = orCreation₁
 
 orIntroduction₂ : {A B : Set} {a : A} → (b : B) → a Or b
-orIntroduction₂ = or₂
+orIntroduction₂ = orCreation₂
 
 orElimination : {A B C : Set} {a : A} {b : B} {c : C} → a Or b → If a Then c → If b Then c → C
 orElimination {_} {_} {_} {_} {_} {c} _ _ _ = c
 
-negationIntroduction : {A B : Set} {a : A} {b : B} → If a Then b → If a Then (not b) → Not a
-negationIntroduction {_} {_} {a} {_} f g = not a
+negationIntroduction : {A B : Set} {a : A} {b : B} → If a Then b → If a Then (notCreation b) → Not a
+negationIntroduction {_} {_} {a} {_} f g = notCreation a
 
-negationElimination : {A : Set} {a : A} → Not (not a) → A
+negationElimination : {A : Set} {a : A} → Not (notCreation a) → A
 negationElimination {_} {a} _ = a
 
 ------------------------------------------
@@ -85,10 +85,10 @@ propositionalEquals (proposition s₁) (proposition s₂) = primStringEquality s
 
 expEquals : Exp → Exp → Bool
 expEquals (eSimple p) (eSimple p₁) = propositionalEquals p p₁
-expEquals (eNot (not a)) (eNot (not b)) = expEquals a b
+expEquals (eNot (notCreation a)) (eNot (notCreation b)) = expEquals a b
 expEquals (eAnd (x & x₁)) (eAnd (x₂ & x₃)) = expEquals x x₂ && expEquals x₁ x₃
-expEquals (eOr (or₁ x)) (eOr (or₁ x₁)) = expEquals x x₁
-expEquals (eOr (or₂ x)) (eOr (or₂ x₁)) = expEquals x x₁
+expEquals (eOr (orCreation₁ x)) (eOr (orCreation₁ x₁)) = expEquals x x₁
+expEquals (eOr (orCreation₂ x)) (eOr (orCreation₂ x₁)) = expEquals x x₁
 expEquals (eImplication (implication e x)) (eImplication (implication e₁ x₁)) = expEquals e e₁ && expEquals x x₁
 expEquals _ _ = false
 
@@ -115,7 +115,7 @@ orIntroduction_with₂ : Exp → Exp → Exp
 orIntroduction_with₂ e implict = eOr {implict} {e} (orIntroduction₂ e)
 
 negationElimination' : Exp → Maybe Exp
-negationElimination' (eNot (not (eNot (not x)))) = just (negationElimination (not (not x)))
+negationElimination' (eNot (notCreation (eNot (notCreation x)))) = just (negationElimination (notCreation (notCreation x)))
 negationElimination' _ = nothing
 
 ----- ver se melhora usando identity types e substituição no lugar de recriar os objetos
@@ -136,8 +136,8 @@ orElimination' _ _ _ = nothing
 
 negationIntroduction' : Exp → Exp → Maybe Exp
 negationIntroduction' (eImplication {a} {b} x) (eImplication {a₁} {b₁} x₁) =
-    if expEquals a a₁ && expEquals (eNot (not b)) b₁
-    then just (eNot (negationIntroduction (implication a b) (implication a (not b))))
+    if expEquals a a₁ && expEquals (eNot (notCreation b)) b₁
+    then just (eNot (negationIntroduction (implication a b) (implication a (notCreation b))))
     else nothing
 negationIntroduction' _ _ = nothing
 
@@ -228,6 +228,15 @@ negationEliminationRule e c =
 _append_ : Exp → Context → Context
 _append_ = commitValid
 
+_implies_ : Exp → Exp → Exp
+a implies b = eImplication (implication a b)
+
+_or_ : Exp → Exp → Exp
+_or_ = orIntroduction_with₁
+
+not : Exp → Exp
+not e = eNot (notCreation e)
+
 p : Exp
 p = eSimple (proposition "p")
 
@@ -244,26 +253,26 @@ exercicio1Premises : Context
 exercicio1Premises = 
     p 
     append ( 
-        ( eImplication ( implication p (eImplication (implication q r)))) 
+        (p implies  (q implies r))
           append ( 
-                (eImplication (implication p q)) append empty
+                (p implies q) append empty
           )
     )
 
 exercitio1 :
     ( do
-        passo1 ← implicationEliminationRule p (eImplication (implication p q)) exercicio1Premises
-        passo2 ← implicationEliminationRule p (eImplication (implication p (eImplication (implication q r)))) passo1
-        passo3 ← implicationEliminationRule q (eImplication (implication q r)) passo2
+        passo1 ← implicationEliminationRule p (p implies q) exercicio1Premises
+        passo2 ← implicationEliminationRule p (p implies (q implies r)) passo1
+        passo3 ← implicationEliminationRule q (q implies r) passo2
         just (contextElem r passo3)
     ) ≡ just true
 exercitio1 = refl
 
 exercicio2Premises : Context
 exercicio2Premises = 
-    ( eImplication ( implication p q)) 
+    (p implies q)
       append ( 
-            (eImplication (implication m (orIntroduction p with₁ q))) append empty
+            (m implies (orIntroduction p with₁ q)) append empty
       )
 
 exercicio2 :
@@ -271,21 +280,35 @@ exercicio2 :
         let step1 = closure q exercicio2Premises
         step2 ← implicationIntroductionRule q step1
         let step3 = closure m step2
-        step4 ← implicationEliminationRule m (eImplication (implication m (orIntroduction p with₁ q))) step3
-        step5 ← orEliminationRule (orIntroduction p with₁ q) (eImplication ( implication p q)) ( eImplication ( implication q q)) step4
+        step4 ← implicationEliminationRule m (m implies (p or q)) step3
+        step5 ← orEliminationRule (p or q) (p implies q) (q implies q) step4
         step6 ← implicationIntroductionRule q step5
-        just (contextElem (eImplication (implication m q)) step6)
+        just (contextElem (m implies q) step6)
     ) ≡ just true
 exercicio2 = refl
-
--- agora é colocar assumption
 
 implicationCreationExercise :
     ( do
         let step1 = closure p empty
         let step2 = closure q step1
         step3 ← implicationIntroductionRule p step2
-        step4 ← implicationIntroductionRule (eImplication (implication q p)) step3
-        just (contextElem (eImplication (implication p (eImplication (implication q p)))) step4)
+        step4 ← implicationIntroductionRule (q implies p) step3
+        just (contextElem (p implies (q implies p)) step4)
     ) ≡ just true
 implicationCreationExercise = refl
+
+
+implicationReversalPremises : Context
+implicationReversalPremises = (p implies q) append empty
+
+implicationReversalExercise :
+    ( do
+        let step1 = closure (not q) implicationReversalPremises
+        let step2 = closure p step1
+        step3 ← implicationIntroductionRule (not q) step2
+        step4 ← negationIntroductionRule (p implies q) (p implies (not q)) step3
+        step5 ← implicationIntroductionRule (not p) step4
+        just (contextElem ((not q) implies (not p)) step5)
+    ) ≡ just true
+implicationReversalExercise = refl
+
