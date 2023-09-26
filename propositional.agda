@@ -279,4 +279,13 @@ exercicio2 :
 exercicio2 = refl
 
 -- agora é colocar assumption
- 
+
+implicationCreationExercise :
+    ( do
+        let step1 = closure p empty
+        let step2 = closure q step1
+        step3 ← implicationIntroductionRule p step2
+        step4 ← implicationIntroductionRule (eImplication (implication q p)) step3
+        just (contextElem (eImplication (implication p (eImplication (implication q p)))) step4)
+    ) ≡ just true
+implicationCreationExercise = refl
