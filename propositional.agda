@@ -228,9 +228,13 @@ negationEliminationRule e c =
 
 _append_ : Exp → Context → Context
 _append_ = commitValid
+infixr 10 _append_
 
 _implies_ : Exp → Exp → Exp
 a implies b = eImplication (implication a b)
+
+_and_ : Exp → Exp → Exp
+_and_ = andIntroduction'
 
 _or_ : Exp → Exp → Exp
 _or_ = orIntroduction_with₁
@@ -251,14 +255,8 @@ m : Exp
 m = eSimple (proposition "m")
 
 exercicio1Premises : Context
-exercicio1Premises = 
-    p 
-    append ( 
-        (p implies  (q implies r))
-          append ( 
-                (p implies q) append empty
-          )
-    )
+exercicio1Premises =
+    p append (p implies (q implies r)) append (p implies q) append empty
 
 exercitio1 :
     ( do
@@ -271,10 +269,7 @@ exercitio1 = refl
 
 exercicio2Premises : Context
 exercicio2Premises = 
-    (p implies q)
-      append ( 
-            (m implies (orIntroduction p with₁ q)) append empty
-      )
+    (p implies q) append (m implies (orIntroduction p with₁ q)) append empty
 
 exercicio2 :
     ( do
@@ -318,25 +313,47 @@ functionTypeToBooleanPremises = (p implies q) append empty
 
 functionTypeToBooleanExercise :
     ( do
-        let step1 = closure (not ((not p) or q)) functionTypeToBooleanPremises
+        let step1 = closure (not (not p or q)) functionTypeToBooleanPremises
         let step2 = closure p step1
         step3 ← implicationEliminationRule p (p implies q) step2
         step4 ← orIntroductionRule₂ (not p) q step3
         step5 ← implicationIntroductionRule ((not p) or q) step4
         let step6 = closure p step5
-        step7 ← implicationIntroductionRule (not ((not p) or q)) step6
-        step8 ← negationIntroductionRule (p implies ((not p) or q)) (p implies (not ((not p) or q))) step7
+        step7 ← implicationIntroductionRule (not (not p or q)) step6
+        step8 ← negationIntroductionRule (p implies (not p or q)) (p implies (not (not p or q))) step7
         step9 ← implicationIntroductionRule (not p) step8
-        let step10 = closure (not ((not p) or q)) step9
+        let step10 = closure (not (not p or q)) step9
         let step11 = closure (not p) step10
         step12 ← orIntroductionRule₁ (not p) q step11
         step13 ← implicationIntroductionRule ((not p) or q) step12
         let step14 = closure (not p) step13
-        step15 ← implicationIntroductionRule (not ((not p) or q)) step14
-        step16 ← negationIntroductionRule ((not p) implies ((not p) or q)) ((not p) implies (not ((not p) or q))) step15
+        step15 ← implicationIntroductionRule (not (not p or q)) step14
+        step16 ← negationIntroductionRule (not p implies (not p or q)) (not p implies (not (not p or q))) step15
         step17 ← implicationIntroductionRule (not (not p)) step16
-        step18 ← negationIntroductionRule ((not ((not p) or q)) implies (not p)) ((not ((not p) or q)) implies (not (not p))) step17
-        step19 ← negationEliminationRule (not (not ((not p) or q))) step18
-        just (contextElem ((not p) or q) step19)
+        step18 ← negationIntroductionRule ((not (not p or q)) implies not p) ((not (not p or q)) implies (not (not p))) step17
+        step19 ← negationEliminationRule (not (not (not p or q))) step18
+        just (contextElem (not p or q) step19)
     ) ≡ just true
 functionTypeToBooleanExercise = refl
+
+deMorganPremise : Context
+deMorganPremise = (not (p or q)) append empty
+
+deMorganExercise :
+    ( do
+        let step1 = closure p deMorganPremise
+        step2 ← orIntroductionRule₁ p q step1
+        step3 ← implicationIntroductionRule (p or q) step2
+        let step4 = closure p step3
+        step5 ← implicationIntroductionRule (not (p or q)) step4
+        step6 ← negationIntroductionRule (p implies (p or q)) (p implies (not (p or q))) step5
+        let step7 = closure q step6
+        step8 ← orIntroductionRule₂ p q step7
+        step9 ← implicationIntroductionRule (p or q) step8
+        let step10 = closure q step9
+        step11 ← implicationIntroductionRule (not (p or q))  step10
+        step12 ← negationIntroductionRule (q implies (p or q)) (q implies (not (p or q))) step11
+        step13 ← andIntroductionRule (not p) (not q) step12
+        just (contextElem (not p and not q) step13)
+    ) ≡ just true
+deMorganExercise = refl
