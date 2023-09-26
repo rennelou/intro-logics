@@ -357,3 +357,30 @@ deMorganExercise :
         just (contextElem (not p and not q) step13)
     ) ≡ just true
 deMorganExercise = refl
+
+exculdedMiddleExercise :
+    ( do
+        let step1 = closure p empty
+        step2 ← implicationIntroductionRule p step1
+        let step3 = closure (not (p or not p)) step2
+        let step4 = closure p step3
+        step5 ← orIntroductionRule₁ p (not p) step4
+        step6 ← implicationIntroductionRule (p or not p) step5
+        let step7 = closure p step6
+        step8 ← implicationIntroductionRule (not (p or not p)) step7
+        step9 ← negationIntroductionRule (p implies (p or not p)) (p implies (not (p or not p))) step8
+        step10 ← implicationIntroductionRule (not p) step9
+        let step11 = closure (not (p or not p)) step10
+        let step12 = closure (not p) step11
+        step13 ← orIntroductionRule₂ p (not p) step12
+        step14 ← implicationIntroductionRule (p or not p) step13
+        let step15 = closure (not p) step14
+        step16 ← implicationIntroductionRule (not (p or not p)) step15
+        step17 ← negationIntroductionRule (not p implies (p or not p)) (not p implies (not (p or not p))) step16
+        step18 ← implicationIntroductionRule (not (not p)) step17
+        step19 ← negationIntroductionRule ((not (p or not p)) implies not p) ((not (p or not p)) implies (not (not p))) step18
+        step20 ← negationEliminationRule (not (not (p or not p))) step19
+        just (contextElem (p or not p) step20)
+
+    ) ≡ just true
+exculdedMiddleExercise = refl
