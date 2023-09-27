@@ -146,20 +146,20 @@ negationIntroduction' _ _ = nothing
 
 data Context : Set where
     empty : Context
-    closure : Exp → Context → Context
+    openConditionalClosure : Exp → Context → Context
     commitValid : Exp → Context → Context
 
 contextElem : Exp → Context → Bool
 contextElem e empty = false
 contextElem e (commitValid x c) = if (expEquals e x) then true else (contextElem e c)
-contextElem e (closure x c) = if (expEquals e x) then true else (contextElem e c)
+contextElem e (openConditionalClosure x c) = if (expEquals e x) then true else (contextElem e c)
 
 commit : Maybe Exp → Context → Maybe Context
 commit m c = Data.Maybe.map (λ x → commitValid x c) m
 
 implicationIntroduction : Exp → Context → Maybe Context
 implicationIntroduction e empty = nothing
-implicationIntroduction e (closure x c) = just (commitValid (eImplication (implication x e)) c)
+implicationIntroduction e (openConditionalClosure x c) = just (commitValid (eImplication (implication x e)) c)
 implicationIntroduction e (commitValid x c) = implicationIntroduction e c
 
 ----
@@ -273,9 +273,9 @@ exercicio2Premises =
 
 exercicio2 :
     ( do
-        let step1 = closure q exercicio2Premises
+        let step1 = openConditionalClosure q exercicio2Premises
         step2 ← implicationIntroductionRule q step1
-        let step3 = closure m step2
+        let step3 = openConditionalClosure m step2
         step4 ← implicationEliminationRule m (m implies (p or q)) step3
         step5 ← orEliminationRule (p or q) (p implies q) (q implies q) step4
         step6 ← implicationIntroductionRule q step5
@@ -285,8 +285,8 @@ exercicio2 = refl
 
 implicationCreationExercise :
     ( do
-        let step1 = closure p empty
-        let step2 = closure q step1
+        let step1 = openConditionalClosure p empty
+        let step2 = openConditionalClosure q step1
         step3 ← implicationIntroductionRule p step2
         step4 ← implicationIntroductionRule (q implies p) step3
         just (contextElem (p implies (q implies p)) step4)
@@ -299,8 +299,8 @@ implicationReversalPremises = (p implies q) append empty
 
 implicationReversalExercise :
     ( do
-        let step1 = closure (not q) implicationReversalPremises
-        let step2 = closure p step1
+        let step1 = openConditionalClosure (not q) implicationReversalPremises
+        let step2 = openConditionalClosure p step1
         step3 ← implicationIntroductionRule (not q) step2
         step4 ← negationIntroductionRule (p implies q) (p implies (not q)) step3
         step5 ← implicationIntroductionRule (not p) step4
@@ -313,20 +313,20 @@ functionTypeToBooleanPremises = (p implies q) append empty
 
 functionTypeToBooleanExercise :
     ( do
-        let step1 = closure (not (not p or q)) functionTypeToBooleanPremises
-        let step2 = closure p step1
+        let step1 = openConditionalClosure (not (not p or q)) functionTypeToBooleanPremises
+        let step2 = openConditionalClosure p step1
         step3 ← implicationEliminationRule p (p implies q) step2
         step4 ← orIntroductionRule₂ (not p) q step3
         step5 ← implicationIntroductionRule ((not p) or q) step4
-        let step6 = closure p step5
+        let step6 = openConditionalClosure p step5
         step7 ← implicationIntroductionRule (not (not p or q)) step6
         step8 ← negationIntroductionRule (p implies (not p or q)) (p implies (not (not p or q))) step7
         step9 ← implicationIntroductionRule (not p) step8
-        let step10 = closure (not (not p or q)) step9
-        let step11 = closure (not p) step10
+        let step10 = openConditionalClosure (not (not p or q)) step9
+        let step11 = openConditionalClosure (not p) step10
         step12 ← orIntroductionRule₁ (not p) q step11
         step13 ← implicationIntroductionRule ((not p) or q) step12
-        let step14 = closure (not p) step13
+        let step14 = openConditionalClosure (not p) step13
         step15 ← implicationIntroductionRule (not (not p or q)) step14
         step16 ← negationIntroductionRule (not p implies (not p or q)) (not p implies (not (not p or q))) step15
         step17 ← implicationIntroductionRule (not (not p)) step16
@@ -341,16 +341,16 @@ deMorganPremise = (not (p or q)) append empty
 
 deMorganExercise :
     ( do
-        let step1 = closure p deMorganPremise
+        let step1 = openConditionalClosure p deMorganPremise
         step2 ← orIntroductionRule₁ p q step1
         step3 ← implicationIntroductionRule (p or q) step2
-        let step4 = closure p step3
+        let step4 = openConditionalClosure p step3
         step5 ← implicationIntroductionRule (not (p or q)) step4
         step6 ← negationIntroductionRule (p implies (p or q)) (p implies (not (p or q))) step5
-        let step7 = closure q step6
+        let step7 = openConditionalClosure q step6
         step8 ← orIntroductionRule₂ p q step7
         step9 ← implicationIntroductionRule (p or q) step8
-        let step10 = closure q step9
+        let step10 = openConditionalClosure q step9
         step11 ← implicationIntroductionRule (not (p or q))  step10
         step12 ← negationIntroductionRule (q implies (p or q)) (q implies (not (p or q))) step11
         step13 ← andIntroductionRule (not p) (not q) step12
@@ -360,21 +360,21 @@ deMorganExercise = refl
 
 exculdedMiddleExercise :
     ( do
-        let step1 = closure p empty
+        let step1 = openConditionalClosure p empty
         step2 ← implicationIntroductionRule p step1
-        let step3 = closure (not (p or not p)) step2
-        let step4 = closure p step3
+        let step3 = openConditionalClosure (not (p or not p)) step2
+        let step4 = openConditionalClosure p step3
         step5 ← orIntroductionRule₁ p (not p) step4
         step6 ← implicationIntroductionRule (p or not p) step5
-        let step7 = closure p step6
+        let step7 = openConditionalClosure p step6
         step8 ← implicationIntroductionRule (not (p or not p)) step7
         step9 ← negationIntroductionRule (p implies (p or not p)) (p implies (not (p or not p))) step8
         step10 ← implicationIntroductionRule (not p) step9
-        let step11 = closure (not (p or not p)) step10
-        let step12 = closure (not p) step11
+        let step11 = openConditionalClosure (not (p or not p)) step10
+        let step12 = openConditionalClosure (not p) step11
         step13 ← orIntroductionRule₂ p (not p) step12
         step14 ← implicationIntroductionRule (p or not p) step13
-        let step15 = closure (not p) step14
+        let step15 = openConditionalClosure (not p) step14
         step16 ← implicationIntroductionRule (not (p or not p)) step15
         step17 ← negationIntroductionRule (not p implies (p or not p)) (not p implies (not (p or not p))) step16
         step18 ← implicationIntroductionRule (not (not p)) step17
