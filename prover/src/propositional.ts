@@ -270,11 +270,35 @@ function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Conte
         if (isEqual(o.exp1, imp1.exp1) && isEqual(o.exp2, imp2.exp1) && isEqual(imp1.exp2, imp2.exp2)) {
             return commitValid(imp1.exp2, c);
         } else {
-            return Error("The given expressions are not compatibles");
+            return Error("Invalid use of or elimination rule");
         }
 
     } else {
         return Error("Some given expression is not valid in the context");
+    }
+}
+
+function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Context): Context | Error {
+    if (elem(imp1, c) && elem(imp2, c)) {
+        if (isEqual(imp1.exp1, imp2.exp1) && isEqual(not(imp1.exp2), imp2.exp2)) {
+            return commitValid(not(imp1.exp1), c);
+        } else {
+            return Error("Invalid use of negation introduction rule");
+        }
+    } else {
+        return Error("Some given expression is not valid in the context");
+    }
+}
+
+function negationEliminationRule(n: Negation, c: Context): Context | Error {
+    if (elem(n, c)) {
+        if (n.exp.tag === "negation") {
+            return commitValid(n.exp.exp, c)
+        } else {
+            return Error("Invalid use of negation elimination rule");
+        }
+    } else {
+        return Error("The given expression is not valid in the context");
     }
 }
 
@@ -388,10 +412,36 @@ function testOrElimination() {
     }
 }
 
+const negationIntroductionTestContext = commitValid(implies(not(p), q), commitValid(implies(not(p), not(q)), emptyContext()));
+
+function testNegationIntrodution() {
+    const result = negationIntroductionRule(implies(not(p), q), implies(not(p), not(q)), negationIntroductionTestContext);
+
+    if (result instanceof Error) {
+        throw result;
+    } else {
+
+        if (!elem(not(not(p)), result)) {
+            throw new Error("Test fail");
+        }
+
+        const result1 = negationEliminationRule(not(not(p)), result);
+
+        if (result1 instanceof Error) {
+            throw result1;
+        } else {
+            if (!elem(p, result1)) {
+                throw Error("and Test fail");
+            }
+        }
+    }
+}
+
 const s: string = "Pass!";
 test();
 test1();
 testAndElimination();
 testOrIntroduction();
 testOrElimination();
+testNegationIntrodution();
 console.log(s);
