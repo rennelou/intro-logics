@@ -1,3 +1,7 @@
 *.agdai
 *.js
 tmp
+package-lock.json
+pnpm-lock.yaml
+prover/node_modules
+prover/dist
