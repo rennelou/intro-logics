@@ -225,6 +225,30 @@ function implicationElimination(condition: Expression, imp: Implication, c: Cont
     }
 }
 
+function andIntroductionRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+    if (elem(e1, c) && elem(e2, c)) {
+        return commitValid(and(e1, e2), c);
+    } else {
+        return Error("Some given expression is not valid in the context");
+    }
+}
+
+function andEliminationLeftRule(a: And, c: Context): Context | Error {
+    if (elem(a, c)) {
+        return commitValid(a.exp1, c);
+    } else {
+        return Error("The given expression is not valid in the context");
+    }
+}
+
+function andEliminationRightRule(a: And, c: Context): Context | Error {
+    if (elem(a, c)) {
+        return commitValid(a.exp2, c);
+    } else {
+        return Error("The given expression is not valid in the context");
+    }
+}
+
 // ------------------------------
 
 // Teste
@@ -258,10 +282,46 @@ function test1() {
         if (!elem(q, result)) {
             throw new Error("Test fail");
         }
+
+        const result1 = andIntroductionRule(p, q, result);
+
+        if (result1 instanceof Error) {
+            throw result1;
+        } else {
+            if (!elem(and(p, q), result1)) {
+                throw Error("and Test fail");
+            }
+        }
+    }
+}
+
+const andEliminationTestContext = commitValid(and(p, q), emptyContext());
+
+function testAndElimination() {
+    const result1 = andEliminationLeftRule(and(p, q), andEliminationTestContext);
+    const result2 = andEliminationRightRule(and(p, q), andEliminationTestContext);
+
+    if (result1 instanceof Error) {
+        throw result1;
+    } else {
+
+        if (!elem(p, result1)) {
+            throw new Error("Test fail");
+        }
+    }
+
+    if (result2 instanceof Error) {
+        throw result2;
+    } else {
+
+        if (!elem(q, result2)) {
+            throw new Error("Test fail");
+        }
     }
 }
 
 const s: string = "Pass!";
 test();
 test1();
+testAndElimination();
 console.log(s);
