@@ -1,4 +1,6 @@
 
+import isEqual from 'lodash.isequal';
+
 // Parte sintatica
 
 type Proposition = {
@@ -166,26 +168,49 @@ function contextMatch<T>(
     }
 }
 
-function elem(e: Expression, c: Context): boolean {
-    const f = contextMatch(
-        (_: EmptyContext) => { return false },
-        (cc: ConditionalClosure) => {
-            if (cc.assumption === e) {
-                return true;
-            } else {
-                return elem(e, cc.context);
-            }
-        },
-        (cv: CommitValid) => {
-            if (cv.expression === e) {
-                return true;
-            } else {
-                return elem(e, cv.context);
-            }
-        }
-    );
+function elem(e: Expression): (c: Context) => boolean {
 
-    return f(c);
+    const _elem: (c: Context) => boolean =
+        contextMatch(
+            (_: EmptyContext) => { return false },
+            (cc: ConditionalClosure) => {
+                if (isEqual(cc.assumption, e)) {
+                    return true;
+                } else {
+                    return _elem(cc.context);
+                }
+            },
+            (cv: CommitValid) => {
+                if (isEqual(cv.expression, e)) {
+                    return true;
+                } else {
+                    return _elem(cv.context);
+                }
+            }
+        );
+
+    return _elem;
+}
+
+function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
+    if (elem(e)(c)) {
+
+        const implicationIntroduction: (c: Context) => Context | Error =
+            contextMatch(
+                (_: EmptyContext) => { return Error("Can't introduct a implication outside of a closure"); },
+                (cc: ConditionalClosure) => {
+                    const implication = implies(cc.assumption, e);
+                    return commitValid(implication, cc.context);
+                },
+                (cv: CommitValid) => {
+                    return implicationIntroduction(cv.context);
+                }
+            );
+
+        return implicationIntroduction(c);
+    } else {
+        return Error("The given expression is not valid in the context");
+    }
 }
 
 // ------------------------------
@@ -195,11 +220,17 @@ function elem(e: Expression, c: Context): boolean {
 const p = proposition("p");
 const q = proposition("q");
 
-const contextTest = commitValid(p, conditionalClosure(p, emptyContext()));
+const contextTest = commitValid(p, conditionalClosure(q, emptyContext()));
 
 function test() {
-    if (!elem(p, contextTest)) {
-        throw new Error("Test fail");
+    const result = implicationIntroductionRule(p, contextTest);
+
+    if (result instanceof Error) {
+        throw result;
+    } else {
+        if (!elem(implies(q, p))(result)) {
+            throw new Error("Test fail");
+        }
     }
 }
 
