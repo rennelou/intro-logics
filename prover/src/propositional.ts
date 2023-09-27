@@ -249,12 +249,42 @@ function andEliminationRightRule(a: And, c: Context): Context | Error {
     }
 }
 
+function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+    if (elem(e1, c)) {
+        return commitValid(or(e1, e2), c);
+    } else {
+        return Error("The respective left expression is not valid in the context");
+    }
+}
+
+function orIntroductionRightRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+    if (elem(e2, c)) {
+        return commitValid(or(e1, e2), c);
+    } else {
+        return Error("The respective right expression is not valid in the context");
+    }
+}
+
+function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Context): Context | Error {
+    if (elem(o, c) && elem(imp1, c) && elem(imp2, c)) {
+        if (isEqual(o.exp1, imp1.exp1) && isEqual(o.exp2, imp2.exp1) && isEqual(imp1.exp2, imp2.exp2)) {
+            return commitValid(imp1.exp2, c);
+        } else {
+            return Error("The given expressions are not compatibles");
+        }
+
+    } else {
+        return Error("Some given expression is not valid in the context");
+    }
+}
+
 // ------------------------------
 
 // Teste
 
 const p = proposition("p");
 const q = proposition("q");
+const r = proposition("r");
 
 const contextTest = commitValid(p, conditionalClosure(q, emptyContext()));
 
@@ -320,8 +350,48 @@ function testAndElimination() {
     }
 }
 
+const orIntroductionTestContext = commitValid(p, emptyContext());
+
+function testOrIntroduction() {
+    const result1 = orIntroductionLeftRule(p, q, orIntroductionTestContext);
+    const result2 = orIntroductionRightRule(r, p, orIntroductionTestContext);
+
+    if (result1 instanceof Error) {
+        throw result1;
+    } else {
+        if (!elem(or(p, q), result1)) {
+            throw Error("or left introduction fail")
+        }
+    }
+
+    if (result2 instanceof Error) {
+        throw result2;
+    } else {
+        if (!elem(or(r, p), result2)) {
+            throw Error("or right introduction fail")
+        }
+    }
+}
+
+const orEliminationTestContext = commitValid(or(p, q), commitValid(implies(p, r), commitValid(implies(q, r), emptyContext())));
+
+function testOrElimination() {
+    const result = orEliminationRule(or(p, q), implies(p, r), implies(q, r), orEliminationTestContext);
+
+    if (result instanceof Error) {
+        throw result;
+    } else {
+
+        if (!elem(r, result)) {
+            throw new Error("Test fail");
+        }
+    }
+}
+
 const s: string = "Pass!";
 test();
 test1();
 testAndElimination();
+testOrIntroduction();
+testOrElimination();
 console.log(s);
