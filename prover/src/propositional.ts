@@ -168,7 +168,7 @@ function contextMatch<T>(
     }
 }
 
-function elem(e: Expression): (c: Context) => boolean {
+function elem(e: Expression, c: Context): boolean {
 
     const _elem: (c: Context) => boolean =
         contextMatch(
@@ -189,11 +189,11 @@ function elem(e: Expression): (c: Context) => boolean {
             }
         );
 
-    return _elem;
+    return _elem(c);
 }
 
 function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
-    if (elem(e)(c)) {
+    if (elem(e, c)) {
 
         const implicationIntroduction: (c: Context) => Context | Error =
             contextMatch(
@@ -213,6 +213,18 @@ function implicationIntroductionRule(e: Expression, c: Context): Context | Error
     }
 }
 
+function implicationElimination(condition: Expression, imp: Implication, c: Context): Context | Error {
+    if (elem(condition, c) && elem(imp, c)) {
+        if (isEqual(condition, imp.exp1)) {
+            return commitValid(imp.exp2, c);
+        } else {
+            return Error("Invalid use of implicationElimination rule");
+        }
+    } else {
+        return Error("Some given expression is not valid in the context");
+    }
+}
+
 // ------------------------------
 
 // Teste
@@ -228,7 +240,22 @@ function test() {
     if (result instanceof Error) {
         throw result;
     } else {
-        if (!elem(implies(q, p))(result)) {
+
+        if (!elem(implies(q, p), result)) {
+            throw new Error("Test fail");
+        }
+    }
+}
+
+const contextTest1 = commitValid(p, commitValid(implies(p, q), emptyContext()));
+
+function test1() {
+    const result = implicationElimination(p, implies(p, q), contextTest1);
+
+    if (result instanceof Error) {
+        throw result;
+    } else {
+        if (!elem(q, result)) {
             throw new Error("Test fail");
         }
     }
@@ -236,4 +263,5 @@ function test() {
 
 const s: string = "Pass!";
 test();
+test1();
 console.log(s);
