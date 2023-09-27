@@ -306,6 +306,20 @@ function negationEliminationRule(n: Negation, c: Context): Context | Error {
 
 // Teste
 
+function extract<T>(result: T | Error): T {
+    if (result instanceof Error) {
+        throw result;
+    } else {
+        return result;
+    }
+}
+
+function isTrue(b: boolean) {
+    if (!b) {
+        throw Error("Expect true");
+    }
+}
+
 const p = proposition("p");
 const q = proposition("q");
 const r = proposition("r");
@@ -313,128 +327,55 @@ const r = proposition("r");
 const contextTest = commitValid(p, conditionalClosure(q, emptyContext()));
 
 function test() {
-    const result = implicationIntroductionRule(p, contextTest);
-
-    if (result instanceof Error) {
-        throw result;
-    } else {
-
-        if (!elem(implies(q, p), result)) {
-            throw new Error("Test fail");
-        }
-    }
+    const result = extract(implicationIntroductionRule(p, contextTest));
+    isTrue(elem(implies(q, p), result));
 }
 
 const contextTest1 = commitValid(p, commitValid(implies(p, q), emptyContext()));
 
 function test1() {
-    const result = implicationElimination(p, implies(p, q), contextTest1);
+    const result = extract(implicationElimination(p, implies(p, q), contextTest1));
+    isTrue(elem(q, result));
 
-    if (result instanceof Error) {
-        throw result;
-    } else {
-        if (!elem(q, result)) {
-            throw new Error("Test fail");
-        }
-
-        const result1 = andIntroductionRule(p, q, result);
-
-        if (result1 instanceof Error) {
-            throw result1;
-        } else {
-            if (!elem(and(p, q), result1)) {
-                throw Error("and Test fail");
-            }
-        }
-    }
+    const result1 = extract(andIntroductionRule(p, q, result));
+    isTrue(elem(and(p, q), result1));
 }
 
 const andEliminationTestContext = commitValid(and(p, q), emptyContext());
 
 function testAndElimination() {
-    const result1 = andEliminationLeftRule(and(p, q), andEliminationTestContext);
-    const result2 = andEliminationRightRule(and(p, q), andEliminationTestContext);
+    const result1 = extract(andEliminationLeftRule(and(p, q), andEliminationTestContext));
+    const result2 = extract(andEliminationRightRule(and(p, q), andEliminationTestContext));
 
-    if (result1 instanceof Error) {
-        throw result1;
-    } else {
-
-        if (!elem(p, result1)) {
-            throw new Error("Test fail");
-        }
-    }
-
-    if (result2 instanceof Error) {
-        throw result2;
-    } else {
-
-        if (!elem(q, result2)) {
-            throw new Error("Test fail");
-        }
-    }
+    isTrue(elem(p, result1));
+    isTrue(elem(q, result2));
 }
 
 const orIntroductionTestContext = commitValid(p, emptyContext());
 
 function testOrIntroduction() {
-    const result1 = orIntroductionLeftRule(p, q, orIntroductionTestContext);
-    const result2 = orIntroductionRightRule(r, p, orIntroductionTestContext);
+    const result1 = extract(orIntroductionLeftRule(p, q, orIntroductionTestContext));
+    const result2 = extract(orIntroductionRightRule(r, p, orIntroductionTestContext));
 
-    if (result1 instanceof Error) {
-        throw result1;
-    } else {
-        if (!elem(or(p, q), result1)) {
-            throw Error("or left introduction fail")
-        }
-    }
-
-    if (result2 instanceof Error) {
-        throw result2;
-    } else {
-        if (!elem(or(r, p), result2)) {
-            throw Error("or right introduction fail")
-        }
-    }
+    isTrue(elem(or(p, q), result1));
+    isTrue(elem(or(r, p), result2));
 }
 
 const orEliminationTestContext = commitValid(or(p, q), commitValid(implies(p, r), commitValid(implies(q, r), emptyContext())));
 
 function testOrElimination() {
-    const result = orEliminationRule(or(p, q), implies(p, r), implies(q, r), orEliminationTestContext);
-
-    if (result instanceof Error) {
-        throw result;
-    } else {
-
-        if (!elem(r, result)) {
-            throw new Error("Test fail");
-        }
-    }
+    const result = extract(orEliminationRule(or(p, q), implies(p, r), implies(q, r), orEliminationTestContext));
+    isTrue(elem(r, result));
 }
 
 const negationIntroductionTestContext = commitValid(implies(not(p), q), commitValid(implies(not(p), not(q)), emptyContext()));
 
 function testNegationIntrodution() {
-    const result = negationIntroductionRule(implies(not(p), q), implies(not(p), not(q)), negationIntroductionTestContext);
+    const result = extract(negationIntroductionRule(implies(not(p), q), implies(not(p), not(q)), negationIntroductionTestContext));
+    isTrue(elem(not(not(p)), result));
 
-    if (result instanceof Error) {
-        throw result;
-    } else {
-
-        if (!elem(not(not(p)), result)) {
-            throw new Error("Test fail");
-        }
-
-        const result1 = negationEliminationRule(not(not(p)), result);
-
-        if (result1 instanceof Error) {
-            throw result1;
-        } else {
-            if (!elem(p, result1)) {
-                throw Error("and Test fail");
-            }
-        }
-    }
+    const result1 = extract(negationEliminationRule(not(not(p)), result));
+    isTrue(elem(p, result1));
 }
 
 const s: string = "Pass!";
