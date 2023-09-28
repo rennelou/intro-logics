@@ -38,21 +38,21 @@ type Expression =
     | Or
     | Implication
 
-function proposition(s: string): Proposition {
+export function proposition(s: string): Proposition {
     return {
         tag: "proposition",
         value: s
     }
 }
 
-function not(e: Expression): Negation {
+export function not(e: Expression): Negation {
     return {
         tag: "negation",
         exp: e
     }
 }
 
-function and(e1: Expression, e2: Expression): And {
+export function and(e1: Expression, e2: Expression): And {
     return {
         tag: "and",
         exp1: e1,
@@ -60,7 +60,7 @@ function and(e1: Expression, e2: Expression): And {
     }
 }
 
-function or(e1: Expression, e2: Expression): Or {
+export function or(e1: Expression, e2: Expression): Or {
     return {
         tag: "or",
         exp1: e1,
@@ -68,7 +68,7 @@ function or(e1: Expression, e2: Expression): Or {
     }
 }
 
-function implies(e1: Expression, e2: Expression): Implication {
+export function implies(e1: Expression, e2: Expression): Implication {
     return {
         tag: "implication",
         exp1: e1,
@@ -126,11 +126,11 @@ type Context =
     | ConditionalClosure
     | CommitValid
 
-function emptyContext(): EmptyContext {
+export function emptyContext(): EmptyContext {
     return { tag: "emptyContext" };
 }
 
-function conditionalClosure(e: Expression, c: Context): ConditionalClosure {
+export function conditionalClosure(e: Expression, c: Context): ConditionalClosure {
     return {
         tag: "conditionalClosure",
         assumption: e,
@@ -168,7 +168,7 @@ function contextMatch<T>(
     }
 }
 
-function isValid(e: Expression, c: Context): boolean {
+export function isValid(e: Expression, c: Context): boolean {
 
     const _elem: (c: Context) => boolean =
         contextMatch(
@@ -192,7 +192,7 @@ function isValid(e: Expression, c: Context): boolean {
     return _elem(c);
 }
 
-function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
+export function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
     if (isValid(e, c)) {
 
         const implicationIntroduction: (c: Context) => Context | Error =
@@ -213,7 +213,7 @@ function implicationIntroductionRule(e: Expression, c: Context): Context | Error
     }
 }
 
-function implicationEliminationRule(condition: Expression, imp: Implication, c: Context): Context | Error {
+export function implicationEliminationRule(condition: Expression, imp: Implication, c: Context): Context | Error {
     if (isValid(condition, c) && isValid(imp, c)) {
         if (isEqual(condition, imp.exp1)) {
             return commitValid(imp.exp2, c);
@@ -225,7 +225,7 @@ function implicationEliminationRule(condition: Expression, imp: Implication, c: 
     }
 }
 
-function andIntroductionRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+export function andIntroductionRule(e1: Expression, e2: Expression, c: Context): Context | Error {
     if (isValid(e1, c) && isValid(e2, c)) {
         return commitValid(and(e1, e2), c);
     } else {
@@ -233,7 +233,7 @@ function andIntroductionRule(e1: Expression, e2: Expression, c: Context): Contex
     }
 }
 
-function andEliminationLeftRule(a: And, c: Context): Context | Error {
+export function andEliminationLeftRule(a: And, c: Context): Context | Error {
     if (isValid(a, c)) {
         return commitValid(a.exp1, c);
     } else {
@@ -241,7 +241,7 @@ function andEliminationLeftRule(a: And, c: Context): Context | Error {
     }
 }
 
-function andEliminationRightRule(a: And, c: Context): Context | Error {
+export function andEliminationRightRule(a: And, c: Context): Context | Error {
     if (isValid(a, c)) {
         return commitValid(a.exp2, c);
     } else {
@@ -249,7 +249,7 @@ function andEliminationRightRule(a: And, c: Context): Context | Error {
     }
 }
 
-function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+export function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Context): Context | Error {
     if (isValid(e1, c)) {
         return commitValid(or(e1, e2), c);
     } else {
@@ -257,7 +257,7 @@ function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Context): Con
     }
 }
 
-function orIntroductionRightRule(e1: Expression, e2: Expression, c: Context): Context | Error {
+export function orIntroductionRightRule(e1: Expression, e2: Expression, c: Context): Context | Error {
     if (isValid(e2, c)) {
         return commitValid(or(e1, e2), c);
     } else {
@@ -265,7 +265,7 @@ function orIntroductionRightRule(e1: Expression, e2: Expression, c: Context): Co
     }
 }
 
-function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Context): Context | Error {
+export function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Context): Context | Error {
     if (isValid(o, c) && isValid(imp1, c) && isValid(imp2, c)) {
         if (isEqual(o.exp1, imp1.exp1) && isEqual(o.exp2, imp2.exp1) && isEqual(imp1.exp2, imp2.exp2)) {
             return commitValid(imp1.exp2, c);
@@ -278,7 +278,7 @@ function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Conte
     }
 }
 
-function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Context): Context | Error {
+export function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Context): Context | Error {
     if (isValid(imp1, c) && isValid(imp2, c)) {
         if (isEqual(imp1.exp1, imp2.exp1) && isEqual(not(imp1.exp2), imp2.exp2)) {
             return commitValid(not(imp1.exp1), c);
@@ -290,7 +290,7 @@ function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Conte
     }
 }
 
-function negationEliminationRule(n: Negation, c: Context): Context | Error {
+export function negationEliminationRule(n: Negation, c: Context): Context | Error {
     if (isValid(n, c)) {
         if (n.exp.tag === "negation") {
             return commitValid(n.exp.exp, c)
