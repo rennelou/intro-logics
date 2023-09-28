@@ -394,8 +394,10 @@ function exercise2() {
 
     const step1 = conditionalClosure(q, premises);
     const step2 = extract(implicationIntroductionRule(q, step1));
+
     const step3 = conditionalClosure(m, step2);
     const step4 = extract(implicationEliminationRule(m, implies(m, or(p, q)), step3));
+
     const step5 = extract(orEliminationRule(or(p, q), implies(p, q), implies(q, q), step4));
     const step6 = extract(implicationIntroductionRule(q, step5));
 
@@ -406,9 +408,12 @@ function implicationReversalExercise() {
     const premises = commitValid(implies(p, q), emptyContext());
 
     const step1 = conditionalClosure(not(q), premises);
+
     const step2 = conditionalClosure(p, step1);
     const step3 = extract(implicationIntroductionRule(not(q), step2));
+
     const step4 = extract(negationIntroductionRule(implies(p, q), implies(p, not(q)), step3));
+
     const step5 = extract(implicationIntroductionRule(not(p), step4));
 
     isTrue(isValid(implies(not(q), not(p)), step5));
@@ -418,27 +423,86 @@ function booleanExponentialExercise() {
     const premises = commitValid(implies(p, q), emptyContext());
 
     const step1 = conditionalClosure(not(or(not(p), q)), premises);
+
     const step2 = conditionalClosure(p, step1);
     const step3 = extract(implicationEliminationRule(p, implies(p, q), step2));
     const step4 = extract(orIntroductionRightRule(not(p), q, step3));
     const step5 = extract(implicationIntroductionRule(or(not(p), q), step4));
+
     const step6 = conditionalClosure(p, step5);
     const step7 = extract(implicationIntroductionRule(not(or(not(p), q)), step6));
     const step8 = extract(negationIntroductionRule(implies(p, or(not(p), q)), implies(p, not(or(not(p), q))), step7));
+
     const step9 = extract(implicationIntroductionRule(not(p), step8));
+
     const step10 = conditionalClosure(not(or(not(p), q)), step9);
+
     const step11 = conditionalClosure(not(p), step10);
     const step12 = extract(orIntroductionLeftRule(not(p), q, step11));
     const step13 = extract(implicationIntroductionRule(or(not(p), q), step12));
+
     const step14 = conditionalClosure(not(p), step13);
     const step15 = extract(implicationIntroductionRule(not(or(not(p), q)), step14));
     const step16 = extract(negationIntroductionRule(implies(not(p), or(not(p), q)), implies(not(p), not(or(not(p), q))), step15));
+
     const step17 = extract(implicationIntroductionRule(not(not(p)), step16));
+
     const step18 = extract(negationIntroductionRule(implies(not(or(not(p), q)), not(p)), implies(not(or(not(p), q)), not(not(p))), step17));
     const step19 = extract(negationEliminationRule(not(not(or(not(p), q))), step18))
 
     isTrue(isValid(or(not(p), q), step19));
 }
+
+function deMorganExercise() {
+    const deMorganPremise = commitValid(not(or(p, q)), emptyContext());
+
+    const step1 = conditionalClosure(p, deMorganPremise);
+    const step2 = extract(orIntroductionLeftRule(p, q, step1));
+    const step3 = extract(implicationIntroductionRule(or(p, q), step2));
+
+    const step4 = conditionalClosure(p, step3);
+    const step5 = extract(implicationIntroductionRule(not(or(p, q)), step4));
+    const step6 = extract(negationIntroductionRule(implies(p, or(p, q)), implies(p, not(or(p, q))), step5));
+
+    const step7 = conditionalClosure(q, step6);
+    const step8 = extract(orIntroductionRightRule(p, q, step7));
+    const step9 = extract(implicationIntroductionRule(or(p, q), step8));
+
+    const step10 = conditionalClosure(q, step9);
+    const step11 = extract(implicationIntroductionRule(not(or(p, q)), step10));
+    const step12 = extract(negationIntroductionRule(implies(q, or(p, q)), implies(q, not(or(p, q))), step11));
+
+    const step13 = extract(andIntroductionRule(not(p), not(q), step12));
+
+    isTrue(isValid(and(not(p), not(q)), step13));
+}
+
+function excludedMiddleExercise() {
+    const step3 = conditionalClosure(not(or(p, not(p))), emptyContext());
+    const step4 = conditionalClosure(p, step3);
+    const step5 = extract(orIntroductionLeftRule(p, not(p), step4));
+    const step6 = extract(implicationIntroductionRule(or(p, not(p)), step5));
+
+    const step7 = conditionalClosure(p, step6);
+    const step8 = extract(implicationIntroductionRule(not(or(p, not(p))), step7));
+    const step9 = extract(negationIntroductionRule(implies(p, or(p, not(p))), implies(p, not(or(p, not(p)))), step8));
+    const step10 = extract(implicationIntroductionRule(not(p), step9));
+
+    const step11 = conditionalClosure(not(or(p, not(p))), step10);
+    const step12 = conditionalClosure(not(p), step11);
+    const step13 = extract(orIntroductionRightRule(p, not(p), step12));
+    const step14 = extract(implicationIntroductionRule(or(p, not(p)), step13));
+
+    const step15 = conditionalClosure(not(p), step14);
+    const step16 = extract(implicationIntroductionRule(not(or(p, not(p))), step15));
+    const step17 = extract(negationIntroductionRule(implies(not(p), or(p, not(p))), implies(not(p), not(or(p, not(p)))), step16));
+    const step18 = extract(implicationIntroductionRule(not(not(p)), step17));
+    const step19 = extract(negationIntroductionRule(implies(not(or(p, not(p))), not(p)), implies(not(or(p, not(p))), not(not(p))), step18));
+    const step20 = extract(negationEliminationRule(not(not(or(p, not(p)))), step19));
+
+    isTrue(isValid(or(p, not(p)), step20));
+}
+
 
 const s: string = "Pass!";
 implicationIntroductionTest();
@@ -453,5 +517,7 @@ exercise1();
 exercise2();
 implicationReversalExercise();
 booleanExponentialExercise();
+deMorganExercise();
+excludedMiddleExercise();
 
 console.log(s);
