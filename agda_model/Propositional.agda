@@ -280,7 +280,7 @@ module Propositional where
         
         exercicio2Premises : Context
         exercicio2Premises = 
-            (p implies q) append (m implies (orIntroduction p with₁ q)) append empty
+            (p implies q) append (m implies (p or q)) append empty
         
         exercicio2 :
             ( do
@@ -371,9 +371,7 @@ module Propositional where
         
         exculdedMiddleExercise :
             ( do
-                let step1 = openConditionalClosure p empty
-                step2 ← implicationIntroductionRule p step1
-                let step3 = openConditionalClosure (not (p or not p)) step2
+                let step3 = openConditionalClosure (not (p or not p)) empty
                 let step4 = openConditionalClosure p step3
                 step5 ← orIntroductionRule₁ p (not p) step4
                 step6 ← implicationIntroductionRule (p or not p) step5
