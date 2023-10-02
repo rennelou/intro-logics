@@ -4,8 +4,11 @@ with import <nixpkgs> {};
 
 mkShell {
   packages = [
-    agda
+    (agda.withPackages (ps: [
+      ps.standard-library
+    ]))
     nodejs
     nodePackages.pnpm
+    emacs
   ];
 }
