@@ -168,7 +168,7 @@ function contextMatch<T>(
     }
 }
 
-export function isValid(e: Expression, c: Context): boolean {
+function isValid(e: Expression, c: Context): boolean {
 
     const _elem: (c: Context) => boolean =
         contextMatch(
@@ -191,6 +191,19 @@ export function isValid(e: Expression, c: Context): boolean {
 
     return _elem(c);
 }
+
+const contextIsClosed: (c: Context) => boolean =
+    contextMatch(
+        (_: EmptyContext) => {
+            return true;
+	},
+	(cc: ConditionalClosure) => {
+            return false;
+	},
+	(cv: CommitValid) => {
+	    return contextIsClosed(cv.context);
+	}
+    );
 
 export function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
     if (isValid(e, c)) {
@@ -314,9 +327,19 @@ function extract<T>(result: T | Error): T {
     }
 }
 
+function goal(e: Expression, c: Context): boolean {
+    return contextIsClosed(c) && isValid(e, c);
+}
+
 function isTrue(b: boolean) {
     if (!b) {
         throw Error("Expect true");
+    }
+}
+
+function isFalse(b: boolean) {
+    if (b) {
+	throw Error("Expects false");
     }
 }
 
@@ -329,17 +352,17 @@ function implicationIntroductionTest() {
     const premises = commitValid(p, conditionalClosure(q, emptyContext()));
 
     const result = extract(implicationIntroductionRule(p, premises));
-    isTrue(isValid(implies(q, p), result));
+    isTrue(goal(implies(q, p), result));
 }
 
 function implicationEliminationAndIntroductionTest() {
     const premises = commitValid(p, commitValid(implies(p, q), emptyContext()));
 
     const result = extract(implicationEliminationRule(p, implies(p, q), premises));
-    isTrue(isValid(q, result));
+    isTrue(goal(q, result));
 
     const result1 = extract(andIntroductionRule(p, q, result));
-    isTrue(isValid(and(p, q), result1));
+    isTrue(goal(and(p, q), result1));
 }
 
 function andEliminationTest() {
@@ -348,8 +371,8 @@ function andEliminationTest() {
     const result1 = extract(andEliminationLeftRule(and(p, q), premises));
     const result2 = extract(andEliminationRightRule(and(p, q), premises));
 
-    isTrue(isValid(p, result1));
-    isTrue(isValid(q, result2));
+    isTrue(goal(p, result1));
+    isTrue(goal(q, result2));
 }
 
 function orIntroductionTest() {
@@ -358,25 +381,25 @@ function orIntroductionTest() {
     const result1 = extract(orIntroductionLeftRule(p, q, premises));
     const result2 = extract(orIntroductionRightRule(r, p, premises));
 
-    isTrue(isValid(or(p, q), result1));
-    isTrue(isValid(or(r, p), result2));
+    isTrue(goal(or(p, q), result1));
+    isTrue(goal(or(r, p), result2));
 }
 
 function orEliminationTest() {
     const premises = commitValid(or(p, q), commitValid(implies(p, r), commitValid(implies(q, r), emptyContext())));
 
     const result = extract(orEliminationRule(or(p, q), implies(p, r), implies(q, r), premises));
-    isTrue(isValid(r, result));
+    isTrue(goal(r, result));
 }
 
 function negationIntroductionTest() {
     const premises = commitValid(implies(not(p), q), commitValid(implies(not(p), not(q)), emptyContext()));
 
     const result = extract(negationIntroductionRule(implies(not(p), q), implies(not(p), not(q)), premises));
-    isTrue(isValid(not(not(p)), result));
+    isTrue(goal(not(not(p)), result));
 
     const result1 = extract(negationEliminationRule(not(not(p)), result));
-    isTrue(isValid(p, result1));
+    isTrue(goal(p, result1));
 }
 
 function exercise1() {
@@ -386,7 +409,7 @@ function exercise1() {
     const step2 = extract(implicationEliminationRule(p, implies(p, implies(q, r)), step1));
     const step3 = extract(implicationEliminationRule(q, implies(q, r), step2));
 
-    isTrue(isValid(r, step3));
+    isTrue(goal(r, step3));
 }
 
 function exercise2() {
@@ -401,7 +424,7 @@ function exercise2() {
     const step5 = extract(orEliminationRule(or(p, q), implies(p, q), implies(q, q), step4));
     const step6 = extract(implicationIntroductionRule(q, step5));
 
-    isTrue(isValid(implies(m, q), step6));
+    isTrue(goal(implies(m, q), step6));
 }
 
 function implicationReversalExercise() {
@@ -416,7 +439,7 @@ function implicationReversalExercise() {
 
     const step5 = extract(implicationIntroductionRule(not(p), step4));
 
-    isTrue(isValid(implies(not(q), not(p)), step5));
+    isTrue(goal(implies(not(q), not(p)), step5));
 }
 
 function booleanExponentialExercise() {
@@ -450,7 +473,7 @@ function booleanExponentialExercise() {
     const step18 = extract(negationIntroductionRule(implies(not(or(not(p), q)), not(p)), implies(not(or(not(p), q)), not(not(p))), step17));
     const step19 = extract(negationEliminationRule(not(not(or(not(p), q))), step18))
 
-    isTrue(isValid(or(not(p), q), step19));
+    isTrue(goal(or(not(p), q), step19));
 }
 
 function deMorganExercise() {
@@ -474,7 +497,7 @@ function deMorganExercise() {
 
     const step13 = extract(andIntroductionRule(not(p), not(q), step12));
 
-    isTrue(isValid(and(not(p), not(q)), step13));
+    isTrue(goal(and(not(p), not(q)), step13));
 }
 
 function excludedMiddleExercise() {
@@ -500,9 +523,15 @@ function excludedMiddleExercise() {
     const step19 = extract(negationIntroductionRule(implies(not(or(p, not(p))), not(p)), implies(not(or(p, not(p))), not(not(p))), step18));
     const step20 = extract(negationEliminationRule(not(not(or(p, not(p)))), step19));
 
-    isTrue(isValid(or(p, not(p)), step20));
+    isTrue(goal(or(p, not(p)), step20));
 }
 
+function assertNotAcceptedNotClosedClojure() {
+    const premises = emptyContext();
+
+    const step1 = conditionalClosure(p, premises);
+    isFalse(goal(p, step1));
+}
 
 const s: string = "Pass!";
 implicationIntroductionTest();
@@ -519,5 +548,6 @@ implicationReversalExercise();
 booleanExponentialExercise();
 deMorganExercise();
 excludedMiddleExercise();
+assertNotAcceptedNotClosedClojure();
 
 console.log(s);
