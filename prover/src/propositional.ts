@@ -1,37 +1,39 @@
 
+import {isTrue, isFalse} from './test-utils';
 import isEqual from 'lodash.isequal';
+
 
 // Parte sintatica
 
-type Proposition = {
+export type Proposition = {
     tag: "proposition",
     value: string
 };
 
-type Negation = {
+export type Negation = {
     tag: "negation",
     exp: Expression
 }
 
-type And = {
+export type And = {
     tag: "and",
     exp1: Expression,
     exp2: Expression
 }
 
-type Or = {
+export type Or = {
     tag: "or",
     exp1: Expression,
     exp2: Expression
 }
 
-type Implication = {
+export type Implication = {
     tag: "implication",
     conditional: Expression,
     conclusion: Expression
 }
 
-type Expression =
+export type Expression =
     | Proposition
     | Negation
     | And
@@ -80,23 +82,23 @@ export function implies(e1: Expression, e2: Expression): Implication {
 
 // Parte das regras de inferência (equivalente à semântica)
 
-type EmptyContext = {
+export type EmptyContext = {
     tag: "emptyContext"
 };
 
-type ConditionalClosure = {
+export type ConditionalClosure = {
     tag: "conditionalClosure",
     assumption: Expression,
     context: Context
 };
 
-type CommitValid = {
+export type CommitValid = {
     tag: "commitValid",
     expression: Expression,
     context: Context
 };
 
-type Context =
+export type Context =
     | EmptyContext
     | ConditionalClosure
     | CommitValid
@@ -311,18 +313,6 @@ function isValid(e: Expression, c: Context): boolean {
     return contextIsClosed(c) && contextElem(e, c);
 }
 
-function isTrue(b: boolean) {
-    if (!b) {
-        throw Error("Expect true");
-    }
-}
-
-function isFalse(b: boolean) {
-    if (b) {
-	throw Error("Expects false");
-    }
-}
-
 const p = proposition("p");
 const q = proposition("q");
 const r = proposition("r");
@@ -513,7 +503,6 @@ function assertNotAcceptedNotClosedClojure() {
     isFalse(isValid(p, step1));
 }
 
-const s: string = "Pass!";
 implicationIntroductionTest();
 implicationEliminationAndIntroductionTest();
 andEliminationTest();
@@ -530,4 +519,4 @@ deMorganExercise();
 excludedMiddleExercise();
 assertNotAcceptedNotClosedClojure();
 
-console.log(s);
+console.log("propositional passed!");

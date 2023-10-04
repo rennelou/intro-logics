@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsup ./src",
-    "test": "pnpm build && node dist/propositional.js"
+    "test": "pnpm build && node dist/exercise-creator.js"
   },
   "keywords": [],
   "author": "",
