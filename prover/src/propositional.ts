@@ -76,31 +76,6 @@ export function implies(e1: Expression, e2: Expression): Implication {
     }
 }
 
-function expressionMatch<T>(
-    f1: (p: Proposition) => T,
-    f2: (n: Negation) => T,
-    f3: (a: And) => T,
-    f4: (o: Or) => T,
-    f5: (i: Implication) => T
-): (e: Expression) => T {
-    return (e: Expression) => {
-        switch (e.tag) {
-            case "proposition":
-                return f1(e);
-            case "negation":
-                return f2(e);
-            case "and":
-                return f3(e);
-            case "or":
-                return f4(e);
-            case "implication":
-                return f5(e);
-            default:
-                throw new Error("Error pattern matching Expression type");
-        }
-    };
-}
-
 // ---------------------------------------------
 
 // Parte das regras de inferência (equivalente à semântica)
@@ -168,7 +143,7 @@ function contextMatch<T>(
     }
 }
 
-function isValid(e: Expression, c: Context): boolean {
+function contextElem(e: Expression, c: Context): boolean {
 
     const _elem: (c: Context) => boolean =
         contextMatch(
@@ -197,7 +172,7 @@ const contextIsClosed: (c: Context) => boolean =
         (_: EmptyContext) => {
             return true;
 	},
-	(cc: ConditionalClosure) => {
+	(_: ConditionalClosure) => {
             return false;
 	},
 	(cv: CommitValid) => {
@@ -206,7 +181,7 @@ const contextIsClosed: (c: Context) => boolean =
     );
 
 export function implicationIntroductionRule(e: Expression, c: Context): Context | Error {
-    if (isValid(e, c)) {
+    if (contextElem(e, c)) {
 
         const implicationIntroduction: (c: Context) => Context | Error =
             contextMatch(
@@ -227,7 +202,7 @@ export function implicationIntroductionRule(e: Expression, c: Context): Context 
 }
 
 export function implicationEliminationRule(condition: Expression, imp: Implication, c: Context): Context | Error {
-    if (isValid(condition, c) && isValid(imp, c)) {
+    if (contextElem(condition, c) && contextElem(imp, c)) {
         if (isEqual(condition, imp.exp1)) {
             return commitValid(imp.exp2, c);
         } else {
@@ -239,7 +214,7 @@ export function implicationEliminationRule(condition: Expression, imp: Implicati
 }
 
 export function andIntroductionRule(e1: Expression, e2: Expression, c: Context): Context | Error {
-    if (isValid(e1, c) && isValid(e2, c)) {
+    if (contextElem(e1, c) && contextElem(e2, c)) {
         return commitValid(and(e1, e2), c);
     } else {
         return Error("Some given expression is not valid in the context");
@@ -247,7 +222,7 @@ export function andIntroductionRule(e1: Expression, e2: Expression, c: Context):
 }
 
 export function andEliminationLeftRule(a: And, c: Context): Context | Error {
-    if (isValid(a, c)) {
+    if (contextElem(a, c)) {
         return commitValid(a.exp1, c);
     } else {
         return Error("The given expression is not valid in the context");
@@ -255,7 +230,7 @@ export function andEliminationLeftRule(a: And, c: Context): Context | Error {
 }
 
 export function andEliminationRightRule(a: And, c: Context): Context | Error {
-    if (isValid(a, c)) {
+    if (contextElem(a, c)) {
         return commitValid(a.exp2, c);
     } else {
         return Error("The given expression is not valid in the context");
@@ -263,7 +238,7 @@ export function andEliminationRightRule(a: And, c: Context): Context | Error {
 }
 
 export function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Context): Context | Error {
-    if (isValid(e1, c)) {
+    if (contextElem(e1, c)) {
         return commitValid(or(e1, e2), c);
     } else {
         return Error("The respective left expression is not valid in the context");
@@ -271,7 +246,7 @@ export function orIntroductionLeftRule(e1: Expression, e2: Expression, c: Contex
 }
 
 export function orIntroductionRightRule(e1: Expression, e2: Expression, c: Context): Context | Error {
-    if (isValid(e2, c)) {
+    if (contextElem(e2, c)) {
         return commitValid(or(e1, e2), c);
     } else {
         return Error("The respective right expression is not valid in the context");
@@ -279,7 +254,7 @@ export function orIntroductionRightRule(e1: Expression, e2: Expression, c: Conte
 }
 
 export function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Context): Context | Error {
-    if (isValid(o, c) && isValid(imp1, c) && isValid(imp2, c)) {
+    if (contextElem(o, c) && contextElem(imp1, c) && contextElem(imp2, c)) {
         if (isEqual(o.exp1, imp1.exp1) && isEqual(o.exp2, imp2.exp1) && isEqual(imp1.exp2, imp2.exp2)) {
             return commitValid(imp1.exp2, c);
         } else {
@@ -292,7 +267,7 @@ export function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c
 }
 
 export function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Context): Context | Error {
-    if (isValid(imp1, c) && isValid(imp2, c)) {
+    if (contextElem(imp1, c) && contextElem(imp2, c)) {
         if (isEqual(imp1.exp1, imp2.exp1) && isEqual(not(imp1.exp2), imp2.exp2)) {
             return commitValid(not(imp1.exp1), c);
         } else {
@@ -304,7 +279,7 @@ export function negationIntroductionRule(imp1: Implication, imp2: Implication, c
 }
 
 export function negationEliminationRule(n: Negation, c: Context): Context | Error {
-    if (isValid(n, c)) {
+    if (contextElem(n, c)) {
         if (n.exp.tag === "negation") {
             return commitValid(n.exp.exp, c)
         } else {
@@ -327,8 +302,8 @@ function extract<T>(result: T | Error): T {
     }
 }
 
-function goal(e: Expression, c: Context): boolean {
-    return contextIsClosed(c) && isValid(e, c);
+function isValid(e: Expression, c: Context): boolean {
+    return contextIsClosed(c) && contextElem(e, c);
 }
 
 function isTrue(b: boolean) {
@@ -352,17 +327,17 @@ function implicationIntroductionTest() {
     const premises = commitValid(p, conditionalClosure(q, emptyContext()));
 
     const result = extract(implicationIntroductionRule(p, premises));
-    isTrue(goal(implies(q, p), result));
+    isTrue(isValid(implies(q, p), result));
 }
 
 function implicationEliminationAndIntroductionTest() {
     const premises = commitValid(p, commitValid(implies(p, q), emptyContext()));
 
     const result = extract(implicationEliminationRule(p, implies(p, q), premises));
-    isTrue(goal(q, result));
+    isTrue(isValid(q, result));
 
     const result1 = extract(andIntroductionRule(p, q, result));
-    isTrue(goal(and(p, q), result1));
+    isTrue(isValid(and(p, q), result1));
 }
 
 function andEliminationTest() {
@@ -371,8 +346,8 @@ function andEliminationTest() {
     const result1 = extract(andEliminationLeftRule(and(p, q), premises));
     const result2 = extract(andEliminationRightRule(and(p, q), premises));
 
-    isTrue(goal(p, result1));
-    isTrue(goal(q, result2));
+    isTrue(isValid(p, result1));
+    isTrue(isValid(q, result2));
 }
 
 function orIntroductionTest() {
@@ -381,25 +356,25 @@ function orIntroductionTest() {
     const result1 = extract(orIntroductionLeftRule(p, q, premises));
     const result2 = extract(orIntroductionRightRule(r, p, premises));
 
-    isTrue(goal(or(p, q), result1));
-    isTrue(goal(or(r, p), result2));
+    isTrue(isValid(or(p, q), result1));
+    isTrue(isValid(or(r, p), result2));
 }
 
 function orEliminationTest() {
     const premises = commitValid(or(p, q), commitValid(implies(p, r), commitValid(implies(q, r), emptyContext())));
 
     const result = extract(orEliminationRule(or(p, q), implies(p, r), implies(q, r), premises));
-    isTrue(goal(r, result));
+    isTrue(isValid(r, result));
 }
 
 function negationIntroductionTest() {
     const premises = commitValid(implies(not(p), q), commitValid(implies(not(p), not(q)), emptyContext()));
 
     const result = extract(negationIntroductionRule(implies(not(p), q), implies(not(p), not(q)), premises));
-    isTrue(goal(not(not(p)), result));
+    isTrue(isValid(not(not(p)), result));
 
     const result1 = extract(negationEliminationRule(not(not(p)), result));
-    isTrue(goal(p, result1));
+    isTrue(isValid(p, result1));
 }
 
 function exercise1() {
@@ -409,7 +384,7 @@ function exercise1() {
     const step2 = extract(implicationEliminationRule(p, implies(p, implies(q, r)), step1));
     const step3 = extract(implicationEliminationRule(q, implies(q, r), step2));
 
-    isTrue(goal(r, step3));
+    isTrue(isValid(r, step3));
 }
 
 function exercise2() {
@@ -424,7 +399,7 @@ function exercise2() {
     const step5 = extract(orEliminationRule(or(p, q), implies(p, q), implies(q, q), step4));
     const step6 = extract(implicationIntroductionRule(q, step5));
 
-    isTrue(goal(implies(m, q), step6));
+    isTrue(isValid(implies(m, q), step6));
 }
 
 function implicationReversalExercise() {
@@ -439,7 +414,7 @@ function implicationReversalExercise() {
 
     const step5 = extract(implicationIntroductionRule(not(p), step4));
 
-    isTrue(goal(implies(not(q), not(p)), step5));
+    isTrue(isValid(implies(not(q), not(p)), step5));
 }
 
 function booleanExponentialExercise() {
@@ -473,7 +448,7 @@ function booleanExponentialExercise() {
     const step18 = extract(negationIntroductionRule(implies(not(or(not(p), q)), not(p)), implies(not(or(not(p), q)), not(not(p))), step17));
     const step19 = extract(negationEliminationRule(not(not(or(not(p), q))), step18))
 
-    isTrue(goal(or(not(p), q), step19));
+    isTrue(isValid(or(not(p), q), step19));
 }
 
 function deMorganExercise() {
@@ -497,7 +472,7 @@ function deMorganExercise() {
 
     const step13 = extract(andIntroductionRule(not(p), not(q), step12));
 
-    isTrue(goal(and(not(p), not(q)), step13));
+    isTrue(isValid(and(not(p), not(q)), step13));
 }
 
 function excludedMiddleExercise() {
@@ -523,14 +498,14 @@ function excludedMiddleExercise() {
     const step19 = extract(negationIntroductionRule(implies(not(or(p, not(p))), not(p)), implies(not(or(p, not(p))), not(not(p))), step18));
     const step20 = extract(negationEliminationRule(not(not(or(p, not(p)))), step19));
 
-    isTrue(goal(or(p, not(p)), step20));
+    isTrue(isValid(or(p, not(p)), step20));
 }
 
 function assertNotAcceptedNotClosedClojure() {
     const premises = emptyContext();
 
     const step1 = conditionalClosure(p, premises);
-    isFalse(goal(p, step1));
+    isFalse(isValid(p, step1));
 }
 
 const s: string = "Pass!";
