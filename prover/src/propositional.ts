@@ -115,7 +115,7 @@ export function conditionalClosure(e: Expression, c: Context): ConditionalClosur
     }
 }
 
-function commitValid(e: Expression, c: Context): CommitValid {
+export function commitValid(e: Expression, c: Context): CommitValid {
     return {
         tag: "commitValid",
         expression: e,
@@ -143,6 +143,38 @@ function contextMatch<T>(
                 throw new Error("Error on pattern matching Context type");
         }
     }
+}
+
+export function getExpression(i: number, c: Context): Expression | Error {
+    if (i < 0) {
+      throw Error("vai tomar no cu");
+    }
+    
+    const base: (c: Context) => (Expression | Error) = 
+      contextMatch(
+            (_: EmptyContext) => { return Error("This context not have enough elements"); },
+            (cc: ConditionalClosure) => { return justExpression(cc.assumption); },
+            (cv: CommitValid) => { return justExpression(cv.expression); }
+      );
+
+    const inductionStep: (si: number) => (c: Context) => (Expression | Error) =
+      (si: number) => {
+          return contextMatch(  
+            (_: EmptyContext) => { return Error("This context not have enough elements"); },
+            (cc: ConditionalClosure) => { return getExpression(si-1, cc.context); },
+            (cv: CommitValid) => { return getExpression(si-1, cv.context); }
+          );
+      }
+        
+    if (i === 0) {
+        return base(c);
+    } else {
+        return inductionStep(i)(c);
+    }
+}
+
+function justExpression(e: Expression): Expression | Error {
+  return e;
 }
 
 function contextElem(e: Expression, c: Context): boolean {
