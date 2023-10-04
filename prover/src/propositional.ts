@@ -27,8 +27,8 @@ type Or = {
 
 type Implication = {
     tag: "implication",
-    exp1: Expression,
-    exp2: Expression
+    conditional: Expression,
+    conclusion: Expression
 }
 
 type Expression =
@@ -71,8 +71,8 @@ export function or(e1: Expression, e2: Expression): Or {
 export function implies(e1: Expression, e2: Expression): Implication {
     return {
         tag: "implication",
-        exp1: e1,
-        exp2: e2
+        conditional: e1,
+        conclusion: e2
     }
 }
 
@@ -145,26 +145,26 @@ function contextMatch<T>(
 
 function contextElem(e: Expression, c: Context): boolean {
 
-    const _elem: (c: Context) => boolean =
+    const elem: (c: Context) => boolean =
         contextMatch(
             (_: EmptyContext) => { return false },
             (cc: ConditionalClosure) => {
                 if (isEqual(cc.assumption, e)) {
                     return true;
                 } else {
-                    return _elem(cc.context);
+                    return elem(cc.context);
                 }
             },
             (cv: CommitValid) => {
                 if (isEqual(cv.expression, e)) {
                     return true;
                 } else {
-                    return _elem(cv.context);
+                    return elem(cv.context);
                 }
             }
         );
 
-    return _elem(c);
+    return elem(c);
 }
 
 const contextIsClosed: (c: Context) => boolean =
@@ -203,8 +203,8 @@ export function implicationIntroductionRule(e: Expression, c: Context): Context 
 
 export function implicationEliminationRule(condition: Expression, imp: Implication, c: Context): Context | Error {
     if (contextElem(condition, c) && contextElem(imp, c)) {
-        if (isEqual(condition, imp.exp1)) {
-            return commitValid(imp.exp2, c);
+        if (isEqual(condition, imp.conditional)) {
+            return commitValid(imp.conclusion, c);
         } else {
             return Error("Invalid use of implicationElimination rule");
         }
@@ -255,8 +255,11 @@ export function orIntroductionRightRule(e1: Expression, e2: Expression, c: Conte
 
 export function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c: Context): Context | Error {
     if (contextElem(o, c) && contextElem(imp1, c) && contextElem(imp2, c)) {
-        if (isEqual(o.exp1, imp1.exp1) && isEqual(o.exp2, imp2.exp1) && isEqual(imp1.exp2, imp2.exp2)) {
-            return commitValid(imp1.exp2, c);
+        if (isEqual(o.exp1, imp1.conditional) && 
+	    isEqual(o.exp2, imp2.conditional) && 
+	    isEqual(imp1.conclusion, imp2.conclusion)
+	   ) {
+            return commitValid(imp1.conclusion, c);
         } else {
             return Error("Invalid use of or elimination rule");
         }
@@ -268,8 +271,10 @@ export function orEliminationRule(o: Or, imp1: Implication, imp2: Implication, c
 
 export function negationIntroductionRule(imp1: Implication, imp2: Implication, c: Context): Context | Error {
     if (contextElem(imp1, c) && contextElem(imp2, c)) {
-        if (isEqual(imp1.exp1, imp2.exp1) && isEqual(not(imp1.exp2), imp2.exp2)) {
-            return commitValid(not(imp1.exp1), c);
+        if (isEqual(imp1.conditional, imp2.conditional) &&
+	    isEqual(not(imp1.conclusion), imp2.conclusion)
+	   ) {
+            return commitValid(not(imp1.conditional), c);
         } else {
             return Error("Invalid use of negation introduction rule");
         }
