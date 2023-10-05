@@ -52,7 +52,7 @@ function test1() {
 function test2() {
   const builder = addProposition("p", createExerciseBuilder());
   addPremise(not(getProposition(0, builder)), builder);
-  isFalse(isEqual(not(proposition("p"), getPremise(0, builder))));
+  isFalse(isEqual(not(proposition("p")), getPremise(0, builder)));
 }
 
 test1();

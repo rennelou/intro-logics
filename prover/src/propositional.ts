@@ -140,7 +140,8 @@ function contextMatch<T>(
                 return f3(c);
 
             default:
-                throw new Error("Error on pattern matching Context type");
+              const _exaustiveCheck: never = c;
+              return _exaustiveCheck;
         }
     }
 }

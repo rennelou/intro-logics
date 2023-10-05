@@ -10,4 +10,8 @@ export function isFalse(b: boolean) {
   }
 }
 
-
+export function fmap<A, B>(f: (a: A) => B): (ma: A | Error) => B | Error {
+  return (ma: A) => {
+    if (typeof ma === "")
+  }
+} 
