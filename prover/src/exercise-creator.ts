@@ -1,5 +1,5 @@
 import {Proposition, Expression, proposition, not, Context, emptyContext, commitValid, getExpression} from './propositional';
-import {isTrue, isFalse} from './test-utils';
+import {isTrue, isFalse, fmap} from './test-utils';
 import isEqual from 'lodash.isequal';
 
 export type Exercise = {
@@ -21,40 +21,48 @@ export function createExerciseBuilder(): ExerciseBuilder {
     };
 }
 
-export function addProposition(s: string, e: ExerciseBuilder): ExerciseBuilder {
-    const p = proposition(s);
-    e.propositions.push(p);
-    return e;
+export function addProposition(e: ExerciseBuilder): (s: string) => ExerciseBuilder {
+    return (s: string) => {
+      const p = proposition(s);
+      e.propositions.push(p);
+      return e;
+    }
 }
 
-export function getProposition(i: number, e: ExerciseBuilder): Proposition | Error {
-  if (i < 0) {
-    throw Error("vai tomar no cu");
+export function getProposition(e: ExerciseBuilder): (i: number) => Proposition | Error {
+  return (i: number) => {
+    if (i < 0) {
+      throw Error("vai tomar no cu");
+    }
+  
+    return e.propositions[i];
   }
-
-  return e.propositions[i];
 }
 
-export function addPremise(e: Expression, b: ExerciseBuilder): ExerciseBuilder {
-    b.premises = commitValid(e, b.premises);
-    return b;
+export function addPremise (b: ExerciseBuilder): (e: Expression) => ExerciseBuilder {
+    return (e: Expression) => {
+      b.premises = commitValid(e, b.premises);
+      return b;
+    }
 }
 
-export function getPremise(i: number, b:  ExerciseBuilder): Expression | Error {
-  return getExpression(i, b.premises);
+export function getPremise (b: ExerciseBuilder): (i: number) => Expression | Error {
+  return (i: number) => { return getExpression(i, b.premises); }
 }
 
 function test1() {
-    const builder = addProposition("p", createExerciseBuilder());
-    isTrue(isEqual(proposition("p"), getProposition(0, builder)));
+    const builder = addProposition (createExerciseBuilder ()) ("p");
+    isTrue(isEqual(proposition ("p"), getProposition (builder) (0)));
 }
 
 function test2() {
-  const builder = addProposition("p", createExerciseBuilder());
-  addPremise(not(getProposition(0, builder)), builder);
-  isFalse(isEqual(not(proposition("p")), getPremise(0, builder)));
+  const builder = addProposition (createExerciseBuilder()) ("p");
+  const proposition0 = fmap (not) (getProposition (builder) (0));
+  fmap (addPremise (builder)) (proposition0);
+  isFalse(isEqual(not(proposition("p")), getPremise (builder) (0)));
 }
 
 test1();
+test2();
 
 console.log("exercise-creator Passed!");
