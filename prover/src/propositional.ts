@@ -1,5 +1,5 @@
 
-import {isTrue, isFalse} from './test-utils';
+import {isTrue, isFalse, extract} from './test-utils';
 import isEqual from 'lodash.isequal';
 
 
@@ -146,36 +146,24 @@ function contextMatch<T>(
     }
 }
 
-export function getExpression(i: number, c: Context): Expression | Error {
-    if (i < 0) {
-      throw Error("vai tomar no cu");
-    }
+export function contextToList(c: Context): Expression[] {
     
-    const base: (c: Context) => (Expression | Error) = 
-      contextMatch(
-            (_: EmptyContext) => { return Error("This context not have enough elements"); },
-            (cc: ConditionalClosure) => { return justExpression(cc.assumption); },
-            (cv: CommitValid) => { return justExpression(cv.expression); }
+    const converter: (es: Expression[]) => (c: Context) => Expression[] = 
+      (es: Expression[]) => {
+        return contextMatch(
+            (_: EmptyContext) => { return es; },
+            (cc: ConditionalClosure) => { 
+              es.push(cc.assumption);
+              return converter (es) (cc.context); 
+            },
+            (cv: CommitValid) => { 
+              es.push(cv.expression);
+              return converter (es) (cv.context);
+            }
       );
-
-    const inductionStep: (si: number) => (c: Context) => (Expression | Error) =
-      (si: number) => {
-          return contextMatch(  
-            (_: EmptyContext) => { return Error("This context not have enough elements"); },
-            (cc: ConditionalClosure) => { return getExpression(si-1, cc.context); },
-            (cv: CommitValid) => { return getExpression(si-1, cv.context); }
-          );
-      }
-        
-    if (i === 0) {
-        return base(c);
-    } else {
-        return inductionStep(i)(c);
     }
-}
 
-function justExpression(e: Expression): Expression | Error {
-  return e;
+    return converter ([]) (c);
 }
 
 function contextElem(e: Expression, c: Context): boolean {
@@ -330,21 +318,13 @@ export function negationEliminationRule(n: Negation, c: Context): Context | Erro
     }
 }
 
+export function isValid(e: Expression, c: Context): boolean {
+    return contextIsClosed(c) && contextElem(e, c);
+}
+
 // ------------------------------
 
 // Teste
-
-function extract<T>(result: T | Error): T {
-    if (result instanceof Error) {
-        throw result;
-    } else {
-        return result;
-    }
-}
-
-function isValid(e: Expression, c: Context): boolean {
-    return contextIsClosed(c) && contextElem(e, c);
-}
 
 const p = proposition("p");
 const q = proposition("q");

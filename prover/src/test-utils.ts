@@ -10,13 +10,17 @@ export function isFalse(b: boolean) {
   }
 }
 
-function isError<T>(mt: T | Error): mt is Error {
-  return (mt as Error) !== undefined;
+export function extract<T>(result: T | Error): T {
+  if (result instanceof Error) {
+    throw result;
+  } else {
+    return result;
+  }
 }
 
 export function fmap<A, B>(f: (a: A) => B): (ma: A | Error) => B | Error {
   return (ma: A | Error) => {
-    if (isError(ma)) {
+    if (ma instanceof Error) {
       return ma;
     } else {
       return f(ma);
