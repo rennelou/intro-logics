@@ -1,5 +1,4 @@
 *.agdai
-*.js
 tmp
 package-lock.json
 pnpm-lock.yaml
