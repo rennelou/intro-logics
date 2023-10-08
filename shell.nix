@@ -3,9 +3,10 @@
 with import <nixpkgs> {};
 let 
   build-packages = [
-    (agda.withPackages (ps: [
-      ps.standard-library
-    ]))
+    # Comentado pra acelerar o build do shell
+    #(agda.withPackages (ps: [
+    #  ps.standard-library
+    #]))
     
     # pacotes necessarios para as extensões do neovim funcionarem
     # porem é necessario o paq que não vem como um pacote nix
@@ -18,7 +19,8 @@ let
     nodePackages.eslint
     nodePackages.typescript
     nodePackages.typescript-language-server
-    emacs
+    #comentado pra acelerar o build do shell
+    #emacs
   ];
 
   android-packages =
@@ -37,7 +39,8 @@ let
       emulator
     ]);
 
-  packages-shell = build-packages ++ (lib.toList android-packages);
+  # comentei as ferramentas android porque acho que com expo não precisa
+  packages-shell = build-packages; # ++ (lib.toList android-packages);
   
   in
   mkShell { packages = packages-shell; }

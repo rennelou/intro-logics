@@ -1,35 +1,50 @@
-import React from 'react';
-import {
+import React, { useEffect, useState } from 'react';
+import { 
+  View,
   Text,
   StyleSheet,
   SafeAreaView,
-  View,
-  TouchableOpacity
+  TouchableOpacity,
+  StatusBar
 } from 'react-native';
 
 import ExerciseCreatorView from './views/exercise-creator-view';
 
 export default function App() {
-  
+  const [statusBarHeight, setStatusBarHeight] = useState(0);
+
+  useEffect(() => {
+    // Obtém a altura da barra de status quando o componente é montado
+    const getStatusBarHeight = () => {
+      setStatusBarHeight(StatusBar.currentHeight || 0);
+    };
+
+    getStatusBarHeight();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
-         
-          <ExerciseCreatorView />
-
-           <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button}>
-            <Text>Button 1</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.button}>
-            <Text>Button 1</Text>
-          </TouchableOpacity>
-        
-          <TouchableOpacity style={styles.button}>
-            <Text>Button 1</Text>
-          </TouchableOpacity> 
+      <View style={styles.header}>
+        <View style={{marginTop: statusBarHeight}}>
+          <Text style={styles.title}>Título da Tela</Text>
+        </View>
       </View>
       
+      <View style={styles.content}>
+        <ExerciseCreatorView/ >
+      </View>
+
+      <View style={styles.menuBar}>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text>Item 1</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text>Item 2</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem}>
+          <Text>Item 3</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -38,21 +53,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  buttonContainer: {
+  header: {
+    backgroundColor: 'lightblue',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuBar: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0
+    backgroundColor: 'lightgray',
+    height: 60,
   },
-  button: {
-    backgroundColor: 'blue',
-    padding: 10,
-    borderRadius: 5
-  } 
+  menuItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
+

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Button } from 'react-native';
 import PropositionCreatorView from './components/proposition-creator-view';
 
-export default function App() {
-  const [propositions, setPropositions] = useState<string[]>([]);
+import { Proposition } from '../prover/propositional';
 
-  const addProposition = (newProposition: string) => {
+export default function App() {
+  const [propositions, setPropositions] = useState<Proposition[]>([]);
+
+  const addProposition = (newProposition: Proposition) => {
     setPropositions([...propositions, newProposition]);
   };
 
