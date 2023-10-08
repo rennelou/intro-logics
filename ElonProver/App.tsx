@@ -1,14 +1,22 @@
-import { React } from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import React from 'react';
+import {
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  View,
+  TouchableOpacity
+} from 'react-native';
+
+import ExerciseCreatorView from './views/exercise-creator-view';
 
 export default function App() {
+  
   return (
-    <View style={styles.container}>
-          
-      <Text>Insert your propositions</Text>  
-      
+    <SafeAreaView style={styles.container}>
+         
+          <ExerciseCreatorView />
 
-      <View style={styles.buttonContainer}>
+           <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button}>
             <Text>Button 1</Text>
           </TouchableOpacity>
@@ -22,7 +30,7 @@ export default function App() {
           </TouchableOpacity> 
       </View>
       
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -31,7 +39,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -46,5 +54,5 @@ const styles = StyleSheet.create({
     backgroundColor: 'blue',
     padding: 10,
     borderRadius: 5
-  }
+  } 
 });
