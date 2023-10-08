@@ -1,24 +1,27 @@
 import { React } from 'react';
-import { Text, StyleSheet, View, Image, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Image source={'./assets/icon.png'} />
+          
+      <Text>Insert your propositions</Text>  
       
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Text>Button 1</Text>
-        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.button}>
-          <Text>Button 1</Text>
-        </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button}>
+            <Text>Button 1</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.button}>
+            <Text>Button 1</Text>
+          </TouchableOpacity>
         
-        <TouchableOpacity style={styles.button}>
-          <Text>Button 1</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <Text>Button 1</Text>
+          </TouchableOpacity> 
       </View>
+      
     </View>
   );
 }
@@ -29,10 +32,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  image: {
-    width: 200,
-    height: 200
   },
   buttonContainer: {
     flexDirection: 'row',
