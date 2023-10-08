@@ -29,19 +29,13 @@ export default function ExerciseCreatorView() {
 
   return (
     <SafeAreaView style={styles.container}>
-          
-      <Text style={styles.title}>Insert your propositions</Text>  
-     
-      <FlatList
-        data={propositions}
-        renderItem={({ item }) => (
-          <View style={styles.propositionContainer}>
-            <Text>{item}</Text>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
-      
+      <View style={styles.header}>
+        <Text style={styles.title}>Insert your proposition</Text>
+        <TouchableOpacity style={styles.addButton} onPress={startAddingProposition}>
+          <Text>Add a new proposition</Text>
+        </TouchableOpacity>
+      </View>
+
       {isAddingProposition ? (
         <View style={styles.inputContainer}>
           <TextInput
@@ -54,12 +48,18 @@ export default function ExerciseCreatorView() {
             <Text>Confirm</Text>
           </TouchableOpacity>
         </View>
-      ) : (
-        <TouchableOpacity style={styles.addButton} onPress={startAddingProposition}>
-          <Text>Add a new proposition</Text>
-        </TouchableOpacity>
-      )}
-      
+      ) : null}
+
+      <FlatList
+        data={propositions}
+        renderItem={({ item }) => (
+          <View style={styles.propositionContainer}>
+            <Text>{item}</Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+      />
+                 
     </SafeAreaView>
   );
 }
@@ -71,14 +71,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  header: {
+    marginTop: 50,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   title: {
-    marginTop: 50
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 10, // Espaçamento entre o título e o botão
   },
   addButton: {
     backgroundColor: 'blue',
     padding: 10,
     borderRadius: 5,
-    marginBottom: 50,
   },
   inputContainer: {
     flexDirection: 'row',
