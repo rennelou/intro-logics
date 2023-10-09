@@ -227,6 +227,7 @@ export const implicationIntroductionRule: (e: Expression) => (c: Context) => Con
     return (c: Context) => {
       
       if (contextElem(e, c)) {
+        
         const implicationIntroduction: (c: Context) => Context | Error =
             contextMatch(
                 (_: EmptyContext) => { return Error("Can't introduct a implication outside of a closure"); },
@@ -239,6 +240,7 @@ export const implicationIntroductionRule: (e: Expression) => (c: Context) => Con
                 }
             );
         return implicationIntroduction(c);
+
       } else {
         return Error("The given expression is not valid in the context");
       }
@@ -246,17 +248,19 @@ export const implicationIntroductionRule: (e: Expression) => (c: Context) => Con
     }
   }
 
-export const implicationEliminationRule: (condition: Expression) => (imp: Implication) => (c: Context) => Context | Error =
+export const implicationEliminationRule: (condition: Expression) => (imp: Expression) => (c: Context) => Context | Error =
   (condition: Expression) => {
-    return (imp: Implication) => {
+    return (imp: Expression) => {
       return (c: Context) => {
 
         if (contextElem(condition, c) && contextElem(imp, c)) {
-          if (isEqual(condition, imp.conditional)) {
+          
+          if (imp.tag === "implication" && isEqual(condition, imp.conditional)) {
               return commitValid(imp.conclusion, c);
           } else {
             return Error("Invalid use of implicationElimination rule");
           }
+
         } else {
           return Error("Some given expression is not valid in the context");
         }
@@ -280,12 +284,18 @@ export const andIntroductionRule: (e1: Expression) => (e2: Expression) => (c: Co
     }
   }
 
-export const andEliminationLeftRule: (a: And) => (c: Context) => Context | Error = 
-  (a: And) => {
+export const andEliminationLeftRule: (a: Expression) => (c: Context) => Context | Error = 
+  (a: Expression) => {
     return (c: Context) => {
       
       if (contextElem(a, c)) {
-        return commitValid(a.exp1, c);
+        
+        if (a.tag === "and") {
+          return commitValid(a.exp1, c);
+        } else {
+          return Error("Invalid use of and elimination rule");
+        }
+
       } else {
         return Error("The given expression is not valid in the context");
       }
@@ -293,12 +303,16 @@ export const andEliminationLeftRule: (a: And) => (c: Context) => Context | Error
     }
   }
 
-export const andEliminationRightRule: (a: And) => (c: Context) => Context | Error =
-  (a: And) => {
+export const andEliminationRightRule: (a: Expression) => (c: Context) => Context | Error =
+  (a: Expression) => {
     return (c: Context) => {
       
       if (contextElem(a, c)) {
-        return commitValid(a.exp2, c);
+        if (a.tag === "and") {
+          return commitValid(a.exp2, c);
+        } else {
+          return Error("Invalid use of and elimination rule");
+        }
       } else {
         return Error("The given expression is not valid in the context");
       }
@@ -336,14 +350,21 @@ export const orIntroductionLeftRule: (e1: Expression) => (e2: Expression) => (c:
   }
     
 
-export const orEliminationRule: (o: Or) => (imp1: Implication) => (imp2: Implication) => (c: Context) => Context | Error =
-  (o: Or) => {
-    return (imp1: Implication) => {
-      return (imp2: Implication) => {
+export const orEliminationRule: (o: Expression) => (imp1: Expression) => (imp2: Expression) => (c: Context) => Context | Error =
+  (o: Expression) => {
+    return (imp1: Expression) => {
+      return (imp2: Expression) => {
         return (c: Context) => {
           
-          if (contextElem(o, c) && contextElem(imp1, c) && contextElem(imp2, c)) {
-            if (isEqual(o.exp1, imp1.conditional) && 
+          if (contextElem(o, c) &&
+              contextElem(imp1, c) &&
+              contextElem(imp2, c)
+          ) {
+          
+            if (o.tag === "or" &&
+                imp1.tag === "implication" &&
+                imp2.tag === "implication" &&
+                isEqual(o.exp1, imp1.conditional) && 
 	              isEqual(o.exp2, imp2.conditional) && 
 	              isEqual(imp1.conclusion, imp2.conclusion)
 	          ) {
@@ -351,6 +372,7 @@ export const orEliminationRule: (o: Or) => (imp1: Implication) => (imp2: Implica
             } else {
               return Error("Invalid use of or elimination rule");
             }
+
           } else {
             return Error("Some given expression is not valid in the context");
           }
@@ -360,18 +382,23 @@ export const orEliminationRule: (o: Or) => (imp1: Implication) => (imp2: Implica
     }
   }
 
-export const negationIntroductionRule: (imp1: Implication) => (imp2: Implication) => (c: Context) => Context | Error =
-  (imp1: Implication) => {
-    return (imp2: Implication) => {
+export const negationIntroductionRule: (imp1: Expression) => (imp2: Expression) => (c: Context) => Context | Error =
+  (imp1: Expression) => {
+    return (imp2: Expression) => {
       return (c: Context) => {
+        
         if (contextElem(imp1, c) && contextElem(imp2, c)) {
-          if (isEqual(imp1.conditional, imp2.conditional) &&
+          
+          if (imp1.tag === "implication" &&
+              imp2.tag === "implication" &&
+              isEqual(imp1.conditional, imp2.conditional) &&
 	            isEqual(not(imp1.conclusion), imp2.conclusion)
 	        ) {
             return commitValid(not(imp1.conditional), c);
           } else {
             return Error("Invalid use of negation introduction rule");
           }
+
         } else {
           return Error("Some given expression is not valid in the context");
         }
@@ -380,16 +407,18 @@ export const negationIntroductionRule: (imp1: Implication) => (imp2: Implication
     }
   }
 
-export const negationEliminationRule: (n: Negation) => (c: Context) => Context | Error =
-  (n: Negation) => {
+export const negationEliminationRule: (n: Expression) => (c: Context) => Context | Error =
+  (n: Expression) => {
     return (c: Context) => {
   
       if (contextElem(n, c)) {
-        if (n.exp.tag === "negation") {
+        
+        if (n.tag === "negation" && n.exp.tag === "negation") {
           return commitValid(n.exp.exp, c)
         } else {
           return Error("Invalid use of negation elimination rule");
         }
+
       } else {
         return Error("The given expression is not valid in the context");
       }
