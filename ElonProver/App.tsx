@@ -14,7 +14,6 @@ export default function App() {
   const [statusBarHeight, setStatusBarHeight] = useState(0);
 
   useEffect(() => {
-    // Obtém a altura da barra de status quando o componente é montado
     const getStatusBarHeight = () => {
       setStatusBarHeight(StatusBar.currentHeight || 0);
     };
