@@ -15,14 +15,14 @@ export function createExerciseBuilder(): ExerciseBuilder {
   };
 }
 
-export function createExpressionBuilder(b: ExerciseBuilder): ExpressionBuilder {
+export function createExpressionBuilder (b: ExerciseBuilder): ExpressionBuilder {
   return {
     propositions: b.propositions,
     auxiliarExpressions: contextToList (b.premises)
   }
 } 
 
-export function addProposition(e: ExerciseBuilder): (s: string) => ExerciseBuilder {
+export function addProposition (e: ExerciseBuilder): (s: string) => ExerciseBuilder {
   return (s: string) => {
     const p = proposition(s);
     e.propositions.push(p);

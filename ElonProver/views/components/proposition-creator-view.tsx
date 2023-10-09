@@ -9,7 +9,8 @@ import {
   TextInput
 } from 'react-native';
 
-import { Proposition, proposition } from '../../prover/propositional';
+import { Proposition } from '../../prover/propositional';
+import { ExerciseBuilder } from '../../prover/exercise-creator';
 
 function propositionPrint(p: Proposition): string {
   return p.value;  
@@ -17,11 +18,11 @@ function propositionPrint(p: Proposition): string {
 
 
 interface ExerciseCreatorViewProps {
-  propositions: Proposition[];
-  onAddProposition: (newProposition: Proposition) => void;
+  exerciseBuilder: ExerciseBuilder;
+  onAddProposition: (newProposition: string) => void;
 }
 
-export default function PropositionCreatorView({propositions, onAddProposition}: ExerciseCreatorViewProps) {
+export default function PropositionCreatorView({exerciseBuilder, onAddProposition}: ExerciseCreatorViewProps) {
   
   const [isAddingProposition, setIsAddingProposition] = useState(false);
   const [propositionText, setPropositionText] = useState('');
@@ -32,7 +33,7 @@ export default function PropositionCreatorView({propositions, onAddProposition}:
 
   const confirmProposition = () => {
     if (propositionText.trim() !== '') {
-      onAddProposition(proposition(propositionText));
+      onAddProposition(propositionText);
       setPropositionText('');
       setIsAddingProposition(false);
     }
@@ -59,7 +60,7 @@ export default function PropositionCreatorView({propositions, onAddProposition}:
         ) : null}
 
         <FlatList
-          data={propositions}
+          data={exerciseBuilder.propositions}
           renderItem={({ item }) => (
             <View style={styles.propositionContainer}>
               <Text>{propositionPrint(item)}</Text>
