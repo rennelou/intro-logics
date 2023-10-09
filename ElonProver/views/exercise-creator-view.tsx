@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import PropositionCreatorView from './components/proposition-creator-view';
 
 import { Proposition, Expression } from '../prover/propositional';
+import { ExerciseBuilder } from '../prover/exercise-creator';
 
 export default function App() {
   const [propositions, setPropositions] = useState<Proposition[]>([]);
