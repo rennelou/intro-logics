@@ -10,20 +10,15 @@ import {
   TextInput
 } from 'react-native';
 
-import { Proposition } from '../../prover/propositional';
 import { ExerciseBuilder } from '../../prover/exercise-creator';
+import { propositionPrint } from '../utils'; 
 
-function propositionPrint(p: Proposition): string {
-  return p.value;  
-}
-
-
-interface ExerciseCreatorViewProps {
+interface ExerciseBuilderProps {
   exerciseBuilder: ExerciseBuilder;
   onAddProposition: (newProposition: string) => void;
 }
 
-export default function PropositionCreatorView({exerciseBuilder, onAddProposition}: ExerciseCreatorViewProps) {
+export default function PropositionCreatorView({exerciseBuilder, onAddProposition}: ExerciseBuilderProps) {
   
   const [isAddingProposition, setIsAddingProposition] = useState(false);
   const [propositionText, setPropositionText] = useState('');

@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Modal, TextInput, StyleSheet } from 'react-native';
+import { Expression, and, proposition, contextToList } from '../../prover/propositional';
+import { ExerciseBuilder } from '../../prover/exercise-creator';
+import { expressionPrint } from '../utils';
 
-interface Item {
-  id: string;
-  name: string;
+interface ExerciseBuilderProps {
+  exerciseBuilder: ExerciseBuilder;
+  onAddPremise: (newPremise: Expression) => void;
 }
 
-export default function ItemListComponent() {
-  const [items, setItems] = useState<Item[]>([]);
+
+export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: ExerciseBuilderProps) {
+  const expressionMock = and(proposition("q"), proposition("p"));
+
   const [modalVisible, setModalVisible] = useState(false);
   const [newItemName, setNewItemName] = useState('');
 
   const addItem = () => {
     if (newItemName) {
-      setItems((prevItems) => [
-        ...prevItems,
-        { id: Math.random().toString(), name: newItemName },
-      ]);
+      onAddPremise(expressionMock);
       setModalVisible(false);
       setNewItemName('');
     }
@@ -34,15 +36,14 @@ export default function ItemListComponent() {
 
      
       <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
+        data={contextToList(exerciseBuilder.premises)}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={{ padding: 8 }}>
-            <Text>{item.name}</Text>
+            <Text>{expressionPrint(item)}</Text>
           </View>
         )}
       />
-      
        
       <Modal visible={modalVisible} animationType="slide">
         <View style={styles.inputContainer}>
