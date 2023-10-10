@@ -4,13 +4,12 @@ import { Expression, and, proposition, contextToList } from '../../prover/propos
 import { ExerciseBuilder } from '../../prover/exercise-creator';
 import { expressionPrint } from '../utils';
 
-interface ExerciseBuilderProps {
+interface PremiseCreatorProps {
   exerciseBuilder: ExerciseBuilder;
   onAddPremise: (newPremise: Expression) => void;
 }
 
-
-export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: ExerciseBuilderProps) {
+export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) {
   const expressionMock = and(proposition("q"), proposition("p"));
 
   const [modalVisible, setModalVisible] = useState(false);

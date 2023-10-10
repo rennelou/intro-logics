@@ -13,12 +13,12 @@ import {
 import { ExerciseBuilder } from '../../prover/exercise-creator';
 import { propositionPrint } from '../utils'; 
 
-interface ExerciseBuilderProps {
+interface PropositionCreatorProps {
   exerciseBuilder: ExerciseBuilder;
   onAddProposition: (newProposition: string) => void;
 }
 
-export default function PropositionCreatorView({exerciseBuilder, onAddProposition}: ExerciseBuilderProps) {
+export default function PropositionCreatorView({exerciseBuilder, onAddProposition}: PropositionCreatorProps) {
   
   const [isAddingProposition, setIsAddingProposition] = useState(false);
   const [propositionText, setPropositionText] = useState('');

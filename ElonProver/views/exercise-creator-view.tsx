@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 
 import PropositionCreatorView from './components/proposition-creator-view';
-import PremisesCreatorView from './components/expression-creator-view';
+import PremisesCreatorView from './components/premise-creator-view';
 import { Expression } from '../prover/propositional';
 import { ExerciseBuilder, createExerciseBuilder, addProposition, addPremise } from '../prover/exercise-creator';
 
