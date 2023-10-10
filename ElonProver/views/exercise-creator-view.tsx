@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 
 import PropositionCreatorView from './components/proposition-creator-view';
+import ItemListComponent from './components/expression-creator-view';
 import { ExerciseBuilder, createExerciseBuilder, addProposition } from '../prover/exercise-creator';
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
   return (
     <View>
       <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
+      <ItemListComponent />
     </View>
   );
 }

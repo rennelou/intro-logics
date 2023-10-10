@@ -3,6 +3,7 @@ import {
   Text,
   StyleSheet,
   View,
+  Modal,
   SafeAreaView,
   TouchableOpacity,
   FlatList,
@@ -31,6 +32,11 @@ export default function PropositionCreatorView({exerciseBuilder, onAddPropositio
     setIsAddingProposition(true);
   };
 
+  const cancelAddingProposition = () => {
+    setIsAddingProposition(false);
+  };
+
+
   const confirmProposition = () => {
     if (propositionText.trim() !== '') {
       onAddProposition(propositionText);
@@ -41,38 +47,41 @@ export default function PropositionCreatorView({exerciseBuilder, onAddPropositio
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.stack}>
-      
-        <Text style={styles.title}>Insert your proposition</Text>
 
-        {isAddingProposition ? (
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={propositionText}
-              onChangeText={(text) => setPropositionText(text)}
-              placeholder="Enter your proposition"
-            />
-            <TouchableOpacity style={styles.confirmButton} onPress={confirmProposition}>
-              <Text>Confirm</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-
-        <FlatList
-          data={exerciseBuilder.propositions}
-          renderItem={({ item }) => (
-            <View style={styles.propositionContainer}>
-              <Text>{propositionPrint(item)}</Text>
-            </View>
-          )}
-          keyExtractor={(item, index) => index.toString()}
-        />
+      <View style={styles.header}> 
+        <Text style={styles.title}>Propositions</Text>
         <TouchableOpacity style={styles.addButton} onPress={startAddingProposition}>
           <Text>  +  </Text>
         </TouchableOpacity>
       </View>
-                 
+
+     <Modal visible={isAddingProposition} animationType='slide'>
+       <View style={styles.inputContainer}>
+         <TextInput
+           style={styles.input}
+           value={propositionText}
+           onChangeText={(text) => setPropositionText(text)}
+           placeholder="Enter your proposition"
+         />
+         <TouchableOpacity style={styles.confirmButton} onPress={confirmProposition}>
+           <Text>Confirm</Text>
+         </TouchableOpacity>
+         <TouchableOpacity style={styles.cancelButton} onPress={cancelAddingProposition}>
+           <Text>Cancel</Text>
+         </TouchableOpacity>
+       </View>
+     </Modal>
+
+     <FlatList
+       data={exerciseBuilder.propositions}
+       renderItem={({ item }) => (
+         <View>
+           <Text>{propositionPrint(item)}</Text>
+         </View>
+       )}
+       keyExtractor={(item, index) => index.toString()}
+     />
+                         
     </SafeAreaView>
   );
 }
@@ -81,12 +90,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'center'
   },
-  stack: {
+  header: {
     marginTop: 50,
-    flexDirection: 'column',
+    flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
@@ -113,6 +121,12 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: 'lightgreen',
+    padding: 10,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  cancelButton: {
+    backgroundColor: 'red',
     padding: 10,
     borderRadius: 5,
     marginLeft: 10,
