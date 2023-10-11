@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Modal, TextInput, StyleSheet } from 'react-native';
-import { Expression, and, proposition, contextToList } from '../../prover/propositional';
-import { ExerciseBuilder, exerciseBuilderToList } from '../../prover/exercise-creator';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet } from 'react-native';
+import { Expression, contextToList } from '../../prover/propositional';
+import { ExerciseBuilder } from '../../prover/exercise-creator';
 import ExpressionCreatorView from './expression-creator-view';
 import { expressionPrint } from '../utils';
 
@@ -10,18 +10,12 @@ interface PremiseCreatorProps {
   onAddPremise: (newPremise: Expression) => void;
 }
 
-export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) {
-  const expressionMock = and(proposition("q"), proposition("p"));
-  const [newItemName, setNewItemName] = useState('');
-
+export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) { 
   const [modalVisible, setModalVisible] = useState(false);
  
-  const addItem = () => {
-    if (newItemName) {
-      onAddPremise(expressionMock);
-      setModalVisible(false);
-      setNewItemName('');
-    }
+  const addItem = (e: Expression) => {
+    onAddPremise(e);
+    setModalVisible(false);
   };
 
   return (
@@ -33,7 +27,6 @@ export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: Pre
           <Text>  +  </Text>
         </TouchableOpacity>
       </View>
-
      
       <FlatList
         data={contextToList(exerciseBuilder.premises)}

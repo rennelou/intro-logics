@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { Expression } from '../../prover/propositional';
+import { Expression, not, and, or, implies } from '../../prover/propositional';
 import { expressionPrint } from '../utils';
 
 interface ExpressionCreatorProps {
@@ -25,28 +25,68 @@ export default function ExpressionCreatorView({modalVisible, propositions, premi
     });
   };
 
-  const handleButton1 = (selectedItems: Expression[]) => {
-    console.log('Botão 1 pressionado com os itens selecionados:', selectedItems);
+  const handleNot = (selectedItems: Expression[]) => {
+    if (selectedItems.length == 1) {
+      addExpression(not(selectedItems[0]));
+    } else {
+      console.log('Por favor, selecione somente 1 item', selectedItems);
+    }
   };
 
-  const handleButton2 = (selectedItem: Expression[]) => {
-    console.log('Botão 2 pressionado com o item selecionado:', selectedItem);
+  const handleAnd = (selectedItems: Expression[]) => {
+    if (selectedItems.length == 2) {
+       addExpression(and(selectedItems[0], selectedItems[1]));
+    } else {
+      console.log('Por favor, selecione somente 2 items', selectedItems);
+    }
   };
 
-  const handleButton3 = (selectedItems: Expression[]) => {
-    console.log('Botão 3 pressionado com os itens selecionados:', selectedItems);
+  const handleOr = (selectedItems: Expression[]) => {
+    if (selectedItems.length == 2) {
+       addExpression(or(selectedItems[0], selectedItems[1]));
+    } else {
+      console.log('Por favor, selecione somente 2 items', selectedItems);
+    }
   };
 
+  const handleImplies = (selectedItems: Expression[]) => {
+    if (selectedItems.length == 2) {
+       addExpression(implies(selectedItems[0], selectedItems[1]));
+    } else {
+      console.log('Por favor, selecione somente 2 items', selectedItems);
+    }  
+  };
+
+  const handleReturn = (selectedItems: Expression[]) => {
+    if (selectedItems.length == 1) {
+      returnExpression(selectedItems[0]);
+      clearSelected();
+    } else {
+      console.log('Por favor, selecione somente 1 item', selectedItems);
+    } 
+  };
+  
   const handleCancel = () => {
-    setSelected((_) => { return []; });
+    clearSelected();
     close();
-  }
+  };
+
+  const addExpression = (e: Expression) => {
+    setExpression([...expressions, e]);
+    clearSelected();
+  };
+
+  const clearSelected = () => {
+    setSelected((_) => { return []; });
+  };
+
+  const expressionList = [...new Set(propositions.concat(premises).concat(expressions))]; 
 
   return (
     <Modal visible={modalVisible} animationType="slide">
        <View>
          <FlatList
-           data={propositions.concat(premises).concat(expressions)}
+           data={expressionList}
            keyExtractor={(item, key) => key.toString()}
            renderItem={({ item }) => (
              <TouchableOpacity
@@ -57,18 +97,12 @@ export default function ExpressionCreatorView({modalVisible, propositions, premi
              </TouchableOpacity>
            )}
          />
-         <Button title="Botão 1" onPress={() => handleButton1(selectedItems)} />
-         <Button
-           title="Botão 2"
-           onPress={() => {
-             if (selectedItems.length === 1) {
-               handleButton2(selectedItems[0]);
-             } else {
-               console.log('Selecione exatamente um item para o Botão 2.');
-             }
-           }}
-         />
-         <Button title="Botão 3" onPress={() => handleButton3(selectedItems)} />
+         
+         <Button title="Not" onPress={() => handleNot(selectedItems)} />
+         <Button title="And" onPress={() => handleAnd(selectedItems) }/>
+         <Button title="Or" onPress={() => handleOr(selectedItems)} />
+         <Button title="Implies" onPress={() => handleImplies(selectedItems)} />
+         <Button title="Return" onPress={() => handleReturn(selectedItems)} />
 
          <Button title="Cancel" onPress={handleCancel}/>
        </View>
