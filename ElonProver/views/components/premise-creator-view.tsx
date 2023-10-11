@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Modal, TextInput, StyleSheet } from 'react-native';
 import { Expression, and, proposition, contextToList } from '../../prover/propositional';
-import { ExerciseBuilder } from '../../prover/exercise-creator';
+import { ExerciseBuilder, exerciseBuilderToList } from '../../prover/exercise-creator';
+import ExpressionCreatorView from './expression-creator-view';
 import { expressionPrint } from '../utils';
 
 interface PremiseCreatorProps {
@@ -43,23 +44,17 @@ export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: Pre
           </View>
         )}
       />
-       
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nome do novo item"
-            value={newItemName}
-            onChangeText={(text) => setNewItemName(text)}
-          />
-          <TouchableOpacity style={styles.confirmButton} onPress={addItem}>
-            <Text>Add</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-            <Text>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      
+      <ExpressionCreatorView 
+        modalVisible={modalVisible}
+        expressions={exerciseBuilderToList(exerciseBuilder)}
+        setExpression={(_) => {}}
+        returnExpression={(_) => {}}
+        close={() => setModalVisible(false)}
+      />
+
+
+    
     </View>
   );
 };

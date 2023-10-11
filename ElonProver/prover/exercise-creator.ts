@@ -1,5 +1,4 @@
 import {Proposition, Expression, proposition, Context, emptyContext, commitValid, contextToList} from './propositional';
-import {ExpressionBuilder} from './expression-creator';
 import {Prover} from './prover';
 
 // Esse arquivo faz mais sentido como um objeto
@@ -15,11 +14,8 @@ export function createExerciseBuilder(): ExerciseBuilder {
   };
 }
 
-export function createExpressionBuilder (b: ExerciseBuilder): ExpressionBuilder {
-  return {
-    propositions: b.propositions,
-    auxiliarExpressions: contextToList (b.premises)
-  }
+export function exerciseBuilderToList (b: ExerciseBuilder): Expression[] {
+  return (contextToList (b.premises)).concat(b.propositions);
 } 
 
 export function addProposition (e: ExerciseBuilder): (s: string) => ExerciseBuilder {

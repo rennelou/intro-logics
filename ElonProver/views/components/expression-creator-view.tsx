@@ -1,57 +1,58 @@
 import React, { useState } from 'react';
 import { Modal, View, Text, Button, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-
-interface ListItem {
-  id: number;
-  text: string;
-  selected: boolean;
-}
+import { Expression } from '../../prover/propositional';
+import { expressionPrint } from '../utils';
 
 interface ExpressionCreatorProps {
   modalVisible: boolean,
+  expressions: Expression[],
+  setExpression: (e: Expression) => void,
+  returnExpression: (e: Expression) => void,
   close: () => void
 }
 
-export default function ExpressionCreatorView({modalVisible, close}: ExpressionCreatorProps) {
-  const [items, setItems] = useState<ListItem[]>([
-    { id: 1, text: 'Item 1', selected: false },
-    { id: 2, text: 'Item 2', selected: false },
-    { id: 3, text: 'Item 3', selected: false },
-  ]);
+export default function ExpressionCreatorView({modalVisible, expressions, setExpression, returnExpression, close}: ExpressionCreatorProps) {
+  const [selectedItems, setSelected] = useState([]);
 
-  const handleToggleSelection = (item: ListItem) => {
-    const updatedItems = [...items];
-    const index = updatedItems.findIndex((i) => i.id === item.id);
-    updatedItems[index].selected = !item.selected;
-    setItems(updatedItems);
+  const handleToggleSelection = (item: Expression) => {
+    setSelected((prevSelected) => {
+      if (prevSelected.includes(item)) {
+        return prevSelected.filter((selectedItem) => selectedItem !== item);
+      } else {
+        return [...prevSelected, item];
+      } 
+    });
   };
 
-  const handleButton1 = (selectedItems: ListItem[]) => {
+  const handleButton1 = (selectedItems: Expression[]) => {
     console.log('Botão 1 pressionado com os itens selecionados:', selectedItems);
   };
 
-  const handleButton2 = (selectedItem: ListItem) => {
+  const handleButton2 = (selectedItem: Expression[]) => {
     console.log('Botão 2 pressionado com o item selecionado:', selectedItem);
   };
 
-  const handleButton3 = (selectedItems: ListItem[]) => {
+  const handleButton3 = (selectedItems: Expression[]) => {
     console.log('Botão 3 pressionado com os itens selecionados:', selectedItems);
   };
 
-  const selectedItems = items.filter((item) => item.selected);
+  const handleCancel = () => {
+    setSelected((_) => { return []; });
+    close();
+  }
 
   return (
     <Modal visible={modalVisible} animationType="slide">
        <View>
          <FlatList
-           data={items}
-           keyExtractor={(item) => item.id.toString()}
+           data={expressions}
+           keyExtractor={(item, key) => key.toString()}
            renderItem={({ item }) => (
              <TouchableOpacity
-               style={[styles.item, { backgroundColor: item.selected ? 'lightblue' : 'white' }]}
+               style={[styles.item, { backgroundColor: selectedItems.includes(item) ? 'lightblue' : 'white' }]}
                onPress={() => handleToggleSelection(item)}
              >
-               <Text>{item.text}</Text>
+               <Text>{expressionPrint(item)}</Text>
              </TouchableOpacity>
            )}
          />
@@ -68,7 +69,7 @@ export default function ExpressionCreatorView({modalVisible, close}: ExpressionC
          />
          <Button title="Botão 3" onPress={() => handleButton3(selectedItems)} />
 
-         <Button title="Cancel" onPress={close}/>
+         <Button title="Cancel" onPress={handleCancel}/>
        </View>
     </Modal>
   );
