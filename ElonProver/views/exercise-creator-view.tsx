@@ -10,11 +10,11 @@ export default function App() {
   const [exerciseBuilder, setExerciseBuilder] = useState<ExerciseBuilder>(createExerciseBuilder());
 
   const insertProposition = (newProposition: string) => { 
-    setExerciseBuilder( addProposition (exerciseBuilder) (newProposition) );
+    setExerciseBuilder((prevExerciseBuilder) => { return addProposition (prevExerciseBuilder) (newProposition); } );
   };
 
   const insertPremise = (newPremise: Expression) => {
-    setExerciseBuilder( addPremise (exerciseBuilder) (newPremise));
+    setExerciseBuilder( (prevExerciseBuilder) => { return addPremise (prevExerciseBuilder) (newPremise); } );
   };
 
   return (

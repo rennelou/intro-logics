@@ -12,9 +12,14 @@ interface PremiseCreatorProps {
 
 export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) {
   const expressionMock = and(proposition("q"), proposition("p"));
+  const [newItemName, setNewItemName] = useState('');
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [newItemName, setNewItemName] = useState('');
+  const [expressions, setExpressions] = useState<Expression[]>(exerciseBuilderToList(exerciseBuilder));
+
+  const addAuxExpression = (e: Expression) => {
+    setExpressions([...expressions, e]);
+  };
 
   const addItem = () => {
     if (newItemName) {
@@ -47,14 +52,12 @@ export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: Pre
       
       <ExpressionCreatorView 
         modalVisible={modalVisible}
-        expressions={exerciseBuilderToList(exerciseBuilder)}
-        setExpression={(_) => {}}
-        returnExpression={(_) => {}}
+        expressions={expressions}
+        setExpression={addAuxExpression}
+        returnExpression={addItem}
         close={() => setModalVisible(false)}
       />
 
-
-    
     </View>
   );
 };
