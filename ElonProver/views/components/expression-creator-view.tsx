@@ -26,7 +26,7 @@ export default function ExpressionCreatorView({modalVisible, propositions, premi
   };
 
   const handleNot = (selectedItems: Expression[]) => {
-    if (selectedItems.length == 1) {
+    if (selectedItems.length === 1) {
       addExpression(not(selectedItems[0]));
     } else {
       console.log('Por favor, selecione somente 1 item', selectedItems);
@@ -34,31 +34,38 @@ export default function ExpressionCreatorView({modalVisible, propositions, premi
   };
 
   const handleAnd = (selectedItems: Expression[]) => {
-    if (selectedItems.length == 2) {
+    if (selectedItems.length === 2) {
        addExpression(and(selectedItems[0], selectedItems[1]));
-    } else {
-      console.log('Por favor, selecione somente 2 items', selectedItems);
+    } else if (selectedItems.length === 1) {
+      addExpression(and(selectedItems[0], selectedItems[0]));
+    } 
+    else {
+      console.log('Por favor, selecione 1 ou 2 items', selectedItems);
     }
   };
 
   const handleOr = (selectedItems: Expression[]) => {
-    if (selectedItems.length == 2) {
+    if (selectedItems.length === 2) {
        addExpression(or(selectedItems[0], selectedItems[1]));
+    } else if (selectedItems.length === 1) {
+      addExpression(or(selectedItems[0], selectedItems[0]));
     } else {
-      console.log('Por favor, selecione somente 2 items', selectedItems);
+      console.log('Por favor, selecione 1 ou 2 items', selectedItems);
     }
   };
 
   const handleImplies = (selectedItems: Expression[]) => {
-    if (selectedItems.length == 2) {
+    if (selectedItems.length === 2) {
        addExpression(implies(selectedItems[0], selectedItems[1]));
+    } else if (selectedItems.length === 1) {
+      addExpression(implies(selectedItems[0], selectedItems[0]));
     } else {
-      console.log('Por favor, selecione somente 2 items', selectedItems);
+      console.log('Por favor, selecione 1 ou 2 items', selectedItems);
     }  
   };
 
   const handleReturn = (selectedItems: Expression[]) => {
-    if (selectedItems.length == 1) {
+    if (selectedItems.length === 1) {
       returnExpression(selectedItems[0]);
       clearSelected();
     } else {

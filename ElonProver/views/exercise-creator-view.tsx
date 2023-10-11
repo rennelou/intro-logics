@@ -6,7 +6,7 @@ import PremisesCreatorView from './components/premise-creator-view';
 import { Expression } from '../prover/propositional';
 import { ExerciseBuilder, createExerciseBuilder, addProposition, addPremise } from '../prover/exercise-creator';
 
-export default function App() {
+export default function ExerciseCreatorView() {
   const [exerciseBuilder, setExerciseBuilder] = useState<ExerciseBuilder>(createExerciseBuilder());
 
   const insertProposition = (newProposition: string) => { 
