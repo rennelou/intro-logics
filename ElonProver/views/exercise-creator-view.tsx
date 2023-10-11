@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { View, Button } from 'react-native';
 
 import PropositionCreatorView from './components/proposition-creator-view';
 import PremisesCreatorView from './components/premise-creator-view';
 import { Expression } from '../prover/propositional';
-import { ExerciseBuilder, createExerciseBuilder, addProposition, addPremise } from '../prover/exercise-creator';
+import { Prover } from '../prover/prover';
+import { ExerciseBuilder, createExerciseBuilder, createProver, addProposition, addPremise } from '../prover/exercise-creator';
 
-export default function ExerciseCreatorView() {
+interface ExerciseCreatorProps {
+  returnExercise: (p: Prover) => void 
+}
+
+export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorProps) {
   const [exerciseBuilder, setExerciseBuilder] = useState<ExerciseBuilder>(createExerciseBuilder());
 
   const insertProposition = (newProposition: string) => { 
@@ -21,6 +26,7 @@ export default function ExerciseCreatorView() {
     <View>
       <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
       <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} />
+      <Button title="Return Exercise" onPress={() => returnExercise(createProver(exerciseBuilder))} />
     </View>
   );
 }
