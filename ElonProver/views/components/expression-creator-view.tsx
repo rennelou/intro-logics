@@ -5,13 +5,14 @@ import { expressionPrint } from '../utils';
 
 interface ExpressionCreatorProps {
   modalVisible: boolean,
-  expressions: Expression[],
-  setExpression: (e: Expression) => void,
+  propositions: Expression[],
+  premises: Expression[],
   returnExpression: (e: Expression) => void,
   close: () => void
 }
 
-export default function ExpressionCreatorView({modalVisible, expressions, setExpression, returnExpression, close}: ExpressionCreatorProps) {
+export default function ExpressionCreatorView({modalVisible, propositions, premises, returnExpression, close}: ExpressionCreatorProps) {
+  const [expressions, setExpression] = useState<Expression[]>([]);
   const [selectedItems, setSelected] = useState([]);
 
   const handleToggleSelection = (item: Expression) => {
@@ -45,7 +46,7 @@ export default function ExpressionCreatorView({modalVisible, expressions, setExp
     <Modal visible={modalVisible} animationType="slide">
        <View>
          <FlatList
-           data={expressions}
+           data={propositions.concat(premises).concat(expressions)}
            keyExtractor={(item, key) => key.toString()}
            renderItem={({ item }) => (
              <TouchableOpacity

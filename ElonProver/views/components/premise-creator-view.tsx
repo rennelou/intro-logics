@@ -15,12 +15,7 @@ export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: Pre
   const [newItemName, setNewItemName] = useState('');
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [expressions, setExpressions] = useState<Expression[]>(exerciseBuilderToList(exerciseBuilder));
-
-  const addAuxExpression = (e: Expression) => {
-    setExpressions([...expressions, e]);
-  };
-
+ 
   const addItem = () => {
     if (newItemName) {
       onAddPremise(expressionMock);
@@ -52,8 +47,8 @@ export default function PremisesCreatorView({exerciseBuilder, onAddPremise}: Pre
       
       <ExpressionCreatorView 
         modalVisible={modalVisible}
-        expressions={expressions}
-        setExpression={addAuxExpression}
+        propositions={exerciseBuilder.propositions}
+        premises={contextToList(exerciseBuilder.premises)}
         returnExpression={addItem}
         close={() => setModalVisible(false)}
       />
