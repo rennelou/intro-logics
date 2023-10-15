@@ -24,6 +24,7 @@ interface ExerciseCreatorProps {
 
 export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorProps) {
   const [exerciseBuilder, setExerciseBuilder] = useState<ExerciseBuilder>(createExerciseBuilder());
+  const [createExercisseModal, setCreateExerciseModal] = useState(false);
 
   const insertProposition = (newProposition: string) => { 
     setExerciseBuilder((prevExerciseBuilder) => { return addProposition (prevExerciseBuilder) (newProposition); } );
@@ -33,11 +34,26 @@ export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorPro
     setExerciseBuilder( (prevExerciseBuilder) => { return addPremise (prevExerciseBuilder) (newPremise); } );
   };
 
+  const createExercise = (e: Expression) => {
+    const exercise = createProver(exerciseBuilder, e);
+
+    console.log(exercise);
+  };
+
   return (
     <View>
       <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
       <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} />
-      <Button title="Return Exercise" onPress={() => returnExercise(createProver(exerciseBuilder))} />
+      
+      <ExpressionCreatorView 
+        modalVisible={createExercisseModal}
+        propositions={exerciseBuilder.propositions}
+        premises={contextToList(exerciseBuilder.premises)}
+        returnExpression={createExercise}
+        close={() => setCreateExerciseModal(false)}
+      />
+
+      <Button title="Create Exercise" onPress={() => setCreateExerciseModal(true)} />
     </View>
   );
 }
@@ -110,6 +126,51 @@ function PropositionCreatorView({exerciseBuilder, onAddProposition}: Proposition
   );
 }
 
+interface PremiseCreatorProps {
+  exerciseBuilder: ExerciseBuilder;
+  onAddPremise: (newPremise: Expression) => void;
+}
+
+function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) { 
+  const [modalVisible, setModalVisible] = useState(false);
+ 
+  const addItem = (e: Expression) => {
+    onAddPremise(e);
+    setModalVisible(false);
+  };
+
+  return (
+    <View style={{ flex: 1, padding: 16 }}>
+     
+      <View style={styles.header}>
+        <Text style={styles.title}>Premises</Text>
+        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <Text>  +  </Text>
+        </TouchableOpacity>
+      </View>
+     
+      <FlatList
+        data={contextToList(exerciseBuilder.premises)}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <View style={{ padding: 8 }}>
+            <Text>{expressionPrint(item)}</Text>
+          </View>
+        )}
+      />
+      
+      <ExpressionCreatorView 
+        modalVisible={modalVisible}
+        propositions={exerciseBuilder.propositions}
+        premises={contextToList(exerciseBuilder.premises)}
+        returnExpression={addItem}
+        close={() => setModalVisible(false)}
+      />
+
+    </View>
+  );
+};
+
 
 const styles = StyleSheet.create({
   container: {
@@ -164,48 +225,4 @@ const styles = StyleSheet.create({
   }  
 });
 
-interface PremiseCreatorProps {
-  exerciseBuilder: ExerciseBuilder;
-  onAddPremise: (newPremise: Expression) => void;
-}
-
-function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProps) { 
-  const [modalVisible, setModalVisible] = useState(false);
- 
-  const addItem = (e: Expression) => {
-    onAddPremise(e);
-    setModalVisible(false);
-  };
-
-  return (
-    <View style={{ flex: 1, padding: 16 }}>
-     
-      <View style={styles.header}>
-        <Text style={styles.title}>Premises</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Text>  +  </Text>
-        </TouchableOpacity>
-      </View>
-     
-      <FlatList
-        data={contextToList(exerciseBuilder.premises)}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <View style={{ padding: 8 }}>
-            <Text>{expressionPrint(item)}</Text>
-          </View>
-        )}
-      />
-      
-      <ExpressionCreatorView 
-        modalVisible={modalVisible}
-        propositions={exerciseBuilder.propositions}
-        premises={contextToList(exerciseBuilder.premises)}
-        returnExpression={addItem}
-        close={() => setModalVisible(false)}
-      />
-
-    </View>
-  );
-};
 
