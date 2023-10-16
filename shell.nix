@@ -15,7 +15,6 @@ let
     # -----------------------------
     
     nodejs
-    nodePackages.pnpm
     nodePackages.eslint
     nodePackages.typescript
     nodePackages.typescript-language-server

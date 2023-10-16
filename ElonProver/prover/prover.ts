@@ -1,5 +1,4 @@
-import {Expression, Proposition, Context, contextToList, isValid} from './propositional';
-import {ExpressionBuilder} from './expression-creator';
+import {Expression, Proposition, Context,  isValid} from './propositional';
 
 export {
   implicationIntroductionRule,
@@ -19,13 +18,6 @@ export type Prover = {
   propositions : Proposition [],
   context : Context
 }
-
-export function createExpressionBuilder(p: Prover): ExpressionBuilder {
-  return {
-    propositions: p.propositions,
-    auxiliarExpressions: contextToList (p.context)
-  }
-} 
 
 export function commit(p: Prover, c: Context | Error): Prover | Error {
   if (c instanceof Error) {

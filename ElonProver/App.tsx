@@ -7,44 +7,38 @@ import {
   TouchableOpacity,
   StatusBar
 } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import ExerciseCreatorView from './views/exercise-creator-view';
+import { Prover } from './prover/prover';
 
-export default function App() {
-  const [statusBarHeight, setStatusBarHeight] = useState(0);
+export function HomeScreen() { 
 
-  useEffect(() => {
-    const getStatusBarHeight = () => {
-      setStatusBarHeight(StatusBar.currentHeight || 0);
-    };
-
-    getStatusBarHeight();
-  }, []);
+  const addExercise = (e: Prover) => {
+    console.log(e);
+  }; 
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <View style={{marginTop: statusBarHeight}}>
-          <Text style={styles.title}>Título da Tela</Text>
-        </View>
-      </View>
       
       <View style={styles.content}>
-        <ExerciseCreatorView/ >
+        <ExerciseCreatorView returnExercise={addExercise} />
       </View>
 
-      <View style={styles.menuBar}>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text>Item 1</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text>Item 2</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text>Item 3</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
+  );
+}
+
+const Stack = createNativeStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="Home" component={HomeScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
