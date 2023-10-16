@@ -6,7 +6,6 @@ import {
   View,
   Button,
   Modal,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   TextInput
@@ -42,8 +41,10 @@ export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorPro
 
   return (
     <View>
-      <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
-      <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} /> 
+      <View style={styles.container}>
+          <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
+          <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} />
+      </View>
       <CreateExerciseButton exerciseBuilder={exerciseBuilder} onReturnGoal={createExercise} />
     </View>
   );
@@ -63,7 +64,7 @@ function CreateExerciseButton({exerciseBuilder, onReturnGoal}: CreateExerciseBut
   };
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View>
      
       <ExpressionCreatorView 
         modalVisible={modalVisible}
@@ -108,7 +109,7 @@ function PropositionCreatorView({exerciseBuilder, onAddProposition}: Proposition
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View>
 
       <View style={styles.header}> 
         <Text style={styles.title}>Propositions</Text>
@@ -144,7 +145,7 @@ function PropositionCreatorView({exerciseBuilder, onAddProposition}: Proposition
        keyExtractor={(item, index) => index.toString()}
      />
                          
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -162,7 +163,7 @@ function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProp
   };
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
+    <View>
      
       <View style={styles.header}>
         <Text style={styles.title}>Premises</Text>
@@ -196,9 +197,8 @@ function PremisesCreatorView({exerciseBuilder, onAddPremise}: PremiseCreatorProp
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center'
+    flexDirection: 'row',
+    justifyContent: 'space-between'
   },
   header: {
     marginTop: 50,
