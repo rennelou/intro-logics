@@ -3,7 +3,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from './views/utils';
-import { Prover } from './prover/prover';
 import ExerciseCreatorView from './views/exercise-creator-view';
 import ExercisesView from './views/exercises-view';
 

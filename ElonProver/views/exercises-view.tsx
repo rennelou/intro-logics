@@ -11,6 +11,7 @@ import {
   TextInput
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { styles } from './styles';
 
 import { Prover } from '../prover/prover';
 import { proverPrint, RootStackParamList } from './utils'
@@ -22,22 +23,35 @@ export default function ExercisesView({ route, navigation }: exerciseViewProps) 
 
   const insertExercise = (e: Prover) => {
     setExerciseList([...exerciseList, e]);
+    navigation.goBack();
   };
 
   return (
-    <View>
-      <FlatList
-        data={exerciseList}
-        renderItem={({ item }) => (
-          <View>
-            <Text>{proverPrint(item)}</Text>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
+    <View style={{ margin: 5, flexDirection: 'row', justifyContent: 'space-between' }}>
+     
+      <View>
+        <View style={styles.header}>
+          <Text style={styles.title}>Exercises</Text>
+        </View>
+
+        <FlatList
+          data={exerciseList}
+          renderItem={({ item }) => (
+            <View>
+              <Text>{proverPrint(item)}</Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
     
-      <TouchableOpacity onPress={() => navigation.push('ExerciseCreator', { returnExercise: insertExercise }) }>
+      <TouchableOpacity 
+        style={styles.addButton}
+        onPress={() => navigation.push('ExerciseCreator', { returnExercise: insertExercise })} >
+        
+        <Text>  +  </Text>
       </TouchableOpacity>
+    
     </View>
   );
 }
