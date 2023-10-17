@@ -42,8 +42,8 @@ export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorPro
   return (
     <View style={{ flex: 1, justifyContent: 'space-between' }} >
       <View style={styles.container}>
-          <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
-          <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} />
+        <PropositionCreatorView exerciseBuilder={exerciseBuilder} onAddProposition={insertProposition} />
+        <PremisesCreatorView exerciseBuilder={exerciseBuilder} onAddPremise={insertPremise} />
       </View>
       <CreateExerciseButton exerciseBuilder={exerciseBuilder} onReturnGoal={createExercise} />
     </View>
