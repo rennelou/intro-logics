@@ -17,3 +17,9 @@ export const expressionPrint: (e: Expression) => string =
 export const proverPrint = (p: Prover) => {
   return expressionPrint(p.goal);
 };
+
+export type RootStackParamList = {
+  Exercises: undefined,
+  ExerciseCreator: { returnExercise: (p: Prover) => void }
+};
+

@@ -10,6 +10,9 @@ import {
   FlatList,
   TextInput
 } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+
+import { RootStackParamList } from './utils'
 
 import { propositionPrint, expressionPrint } from './utils'; 
 import ExpressionCreatorView from './components/expression-creator-view';
@@ -17,11 +20,9 @@ import { Expression, contextToList } from '../prover/propositional';
 import { Prover } from '../prover/prover';
 import { ExerciseBuilder, createExerciseBuilder, createProver, addProposition, addPremise } from '../prover/exercise-creator';
 
-interface ExerciseCreatorProps {
-  returnExercise: (p: Prover) => void 
-}
+type exerciseCreatorViewProps = NativeStackScreenProps<RootStackParamList, 'ExerciseCreator'>;
 
-export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorProps) {
+export default function ExerciseCreatorView({ route, navigation }: exerciseCreatorViewProps) {
   const [exerciseBuilder, setExerciseBuilder] = useState<ExerciseBuilder>(createExerciseBuilder());
 
   const insertProposition = (newProposition: string) => { 
@@ -36,7 +37,7 @@ export default function ExerciseCreatorView({returnExercise}: ExerciseCreatorPro
     const exercise = createProver(exerciseBuilder, e);
     console.log(exercise);
 
-    returnExercise(exercise);
+    route.params.returnExercise(exercise);
   };
 
   return (

@@ -11,19 +11,13 @@ import {
   TextInput
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { Prover } from '../prover/prover';
-import ExerciseCreatorView from './exercise-creator-view';
-import { proverPrint } from './utils'
+import { proverPrint, RootStackParamList } from './utils'
 
-interface ExercisesViewProps {
-  exercisesList: Prover[]
-};
+type exerciseViewProps = NativeStackScreenProps<RootStackParamList, 'Exercises'>;
 
-type Props = NativeStackScreenProps<ExercisesViewProps, 'Exercises'>;
-
-export default function ExercisesView({ navigation, route }: Props) {
+export default function ExercisesView({ route, navigation }: exerciseViewProps) {
   const [exerciseList, setExerciseList] = useState<Prover[]>([]);
 
   const insertExercise = (e: Prover) => {
