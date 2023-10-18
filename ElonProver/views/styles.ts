@@ -6,14 +6,12 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   header: {
-    marginTop: 50,
     flexDirection: 'row',
     alignItems: 'center',
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginRight: 10, // Espaçamento entre o título e o botão
+    fontWeight: 'bold'
   },
   addButton: {
     backgroundColor: 'lightgray',

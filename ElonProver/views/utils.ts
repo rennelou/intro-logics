@@ -20,6 +20,6 @@ export const proverPrint = (p: Prover) => {
 
 export type RootStackParamList = {
   Exercises: undefined,
-  ExerciseCreator: { returnExercise: (p: Prover) => void }
+  ExerciseCreator: undefined
 };
 

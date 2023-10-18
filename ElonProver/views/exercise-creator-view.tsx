@@ -13,6 +13,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { styles } from './styles';
 import { RootStackParamList } from './utils'
 
+import { storeExercise } from '../storage';
 import { propositionPrint, expressionPrint } from './utils'; 
 import ExpressionCreatorView from './components/expression-creator-view';
 import { Expression, contextToList } from '../prover/propositional';
@@ -33,9 +34,8 @@ export default function ExerciseCreatorView({ route, navigation }: exerciseCreat
 
   const createExercise = (e: Expression) => {
     const exercise = createProver(exerciseBuilder, e);
-    console.log(exercise);
 
-    route.params.returnExercise(exercise);
+    storeExercise(exercise).then(() => navigation.goBack() );
   };
 
   return (
